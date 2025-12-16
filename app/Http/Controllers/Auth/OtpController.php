@@ -104,6 +104,49 @@ class OtpController extends Controller
     }
 
     /**
+     * Log user into Laravel session after API verification
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function sessionLogin(Request $request)
+    {
+        $email = $request->input('email');
+        
+        \Log::info('Session Login - Email:', ['email' => $email]);
+        
+        if (!$email) {
+            return redirect()->route('login')->with('error', 'Invalid session data.');
+        }
+
+        // Find or create user in local database
+        $user = User::firstOrCreate(
+            ['email' => strtolower($email)],
+            [
+                'first_name' => explode('@', $email)[0], // Use email prefix as name
+                'last_name' => '',
+                'middle_name' => '',
+                'gender' => '',
+                'dob' => '',
+                'marital_status' => '',
+                'phone_number' => '',
+                'nin' => '',
+                'password' => Hash::make(uniqid()), // Random password since we're using API auth
+                'email_verified_at' => now()
+            ]
+        );
+
+        \Log::info('Session Login - User:', ['user_id' => $user->id, 'user_email' => $user->email]);
+
+        // Log the user into Laravel session
+        auth()->login($user, true); // true = remember me
+
+        \Log::info('Session Login - Auth check:', ['authenticated' => auth()->check()]);
+
+        return redirect()->route('home')->with('status', 'Welcome back!');
+    }
+
+    /**
      * Create a new user instance after validation.
      *
      * @param  array  $data

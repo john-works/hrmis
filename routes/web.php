@@ -19,3 +19,4 @@ Route::get('/otp', function () {
 
 Route::post('/otp', [OtpController::class, 'verifyOtp'])->name('password.otp');
 Route::post('/resend-otp', [OtpController::class, 'resendOtp'])->name('password.resend-otp');
+Route::post('/otp/session-login', [OtpController::class, 'sessionLogin'])->name('otp.session.login');

@@ -49,7 +49,7 @@
                     @enderror
 
                     <!-- OTP Form -->
-                    <form id="otpForm" method="POST" action="{{ route('password.otp') }}">
+                    <form id="otpForm">
                         @csrf
                         
                         <div class="mb-4">
@@ -77,6 +77,10 @@
                         <button type="button" class="btn btn-link text-decoration-none p-0" id="resendBtn">
                             <span id="resendText">Resend Code</span>
                             <span id="resendTimer" class="d-none">Resend in <span id="countdown">60</span>s</span>
+                        </button>
+                        <br>
+                        <button type="button" class="btn btn-link text-decoration-none p-0 mt-2 text-warning" id="backToLoginBtn">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Login (Get Fresh OTP)
                         </button>
                     </div>
 
@@ -211,10 +215,17 @@ document.addEventListener('DOMContentLoaded', function() {
             
             try {
                 const apiUrl = 'http://192.168.32.215:8041/api/v1';
-                const response = await axios.post(`${apiUrl}/validate_code`, {
+                
+                // Try both field names - 'code' and 'otp'
+                const requestData = {
                     code: code,
+                    otp: code,
                     email: email
-                });
+                };
+                
+                console.log('Sending OTP verification request:', requestData);
+                
+                const response = await axios.post(`${apiUrl}/validate_code`, requestData);
                 
                 console.log('OTP Verification Response:', response.data);
                 
@@ -228,23 +239,56 @@ document.addEventListener('DOMContentLoaded', function() {
                         localStorage.setItem('token', response.data.token);
                     }
                     
-                    // Clear sessionStorage
+                    console.log('✓✓✓ OTP VERIFICATION SUCCESSFUL! ✓✓✓');
+                    console.log('User:', response.data.user);
+                    console.log('Token:', response.data.token);
+                    
+                    // Now log the user into Laravel's session
+                    console.log('Logging user into Laravel session...');
+                    
+                    // Create a form and submit it to Laravel's session login endpoint
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{{ route("otp.session.login") }}';
+                    
+                    // Add CSRF token
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = '{{ csrf_token() }}';
+                    form.appendChild(csrfInput);
+                    
+                    // Add email
+                    const emailInput = document.createElement('input');
+                    emailInput.type = 'hidden';
+                    emailInput.name = 'email';
+                    emailInput.value = email;
+                    form.appendChild(emailInput);
+                    
+                    // Add form to body and submit
+                    document.body.appendChild(form);
+                    
+                    // Clear sessionStorage before redirect
                     sessionStorage.removeItem('otp_email');
                     sessionStorage.removeItem('otp_code');
                     
-                    alert('Email verified successfully! Redirecting...');
-                    
-                    // Redirect to home page
-                    window.location.href = '{{ route("home") }}';
+                    form.submit();
                 } else {
                     throw new Error('Verification failed');
                 }
             } catch (error) {
                 console.error('OTP Verification Error:', error);
+                console.error('Error Response:', error.response);
+                console.error('Error Data:', error.response?.data);
                 
                 let errorMessage = 'Invalid OTP code. Please try again.';
-                if (error.response && error.response.data && error.response.data.message) {
-                    errorMessage = error.response.data.message;
+                if (error.response && error.response.data) {
+                    if (error.response.data.message) {
+                        errorMessage = error.response.data.message;
+                    } else if (error.response.data.error) {
+                        errorMessage = error.response.data.error;
+                    }
+                    console.log('API Error Message:', errorMessage);
                 }
                 
                 alert(errorMessage);
@@ -266,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Resend OTP
-    resendBtn.addEventListener('click', function() {
+    resendBtn.addEventListener('click', async function() {
         if (resendBtn.disabled) return;
         
         resendBtn.disabled = true;
@@ -276,27 +320,55 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get email from sessionStorage
         const email = sessionStorage.getItem('otp_email');
         
-        // Make AJAX request to resend OTP
-        fetch('{{ route('password.resend-otp') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ email: email })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status) {
-                showAlert('success', data.status);
-            } else if (data.error) {
-                showAlert('danger', data.error);
+        if (!email) {
+            showAlert('danger', 'Session expired. Please login again.');
+            return;
+        }
+        
+        try {
+            const apiUrl = 'http://192.168.32.215:8041/api/v1';
+            
+            // Try resend_otp endpoint first
+            let response;
+            try {
+                response = await axios.post(`${apiUrl}/resend_otp`, {
+                    email: email
+                });
+            } catch (e) {
+                // If resend_otp doesn't exist, try resend-otp
+                try {
+                    response = await axios.post(`${apiUrl}/resend-otp`, {
+                        email: email
+                    });
+                } catch (e2) {
+                    // If neither works, inform user to login again
+                    throw new Error('Please login again to receive a new OTP');
+                }
             }
-        })
-        .catch(error => {
+            
+            const message = response.data.message || '';
+            
+            // Extract new OTP code from message
+            const otpMatch = message.match(/\b\d{6}\b/);
+            if (otpMatch) {
+                sessionStorage.setItem('otp_code', otpMatch[0]);
+                console.log('New OTP Code:', otpMatch[0]);
+                
+                // Update the displayed OTP if element exists
+                const otpAlert = document.querySelector('.alert-info');
+                if (otpAlert) {
+                    otpAlert.innerHTML = `<strong>Your OTP Code (from API):</strong> ${otpMatch[0]}`;
+                }
+                
+                showAlert('success', 'New OTP sent successfully! Code: ' + otpMatch[0]);
+            } else {
+                showAlert('info', message || 'OTP sent. Please check your email.');
+            }
+        } catch (error) {
             console.error('Error:', error);
-            showAlert('danger', 'Failed to resend OTP. Please try again.');
-        });
+            const errorMsg = error.message || 'Failed to resend OTP. Please login again.';
+            showAlert('danger', errorMsg);
+        }
         
         // Start countdown
         timeLeft = 60;
@@ -327,6 +399,19 @@ document.addEventListener('DOMContentLoaded', function() {
         form.parentNode.insertBefore(alertDiv, form);
         
         setTimeout(() => alertDiv.remove(), 5000);
+    }
+
+    // Back to login button
+    const backToLoginBtn = document.getElementById('backToLoginBtn');
+    if (backToLoginBtn) {
+        backToLoginBtn.addEventListener('click', function() {
+            // Clear sessionStorage
+            sessionStorage.removeItem('otp_email');
+            sessionStorage.removeItem('otp_code');
+            
+            // Redirect to login
+            window.location.href = '{{ route("login") }}';
+        });
     }
 
     // Focus first input on load
