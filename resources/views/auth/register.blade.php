@@ -106,7 +106,7 @@
 
                         <div class="row mb-0">
                             <div class="col-md-6 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-primary" id="registerBtn">
                                     {{ __('Register') }}
                                 </button>
                             </div>
@@ -117,4 +117,75 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const apiUrl = 'http://192.168.32.215:8041/api/v1';
+    const registerForm = document.getElementById('registerForm');
+    const registerBtn = document.getElementById('registerBtn');
+
+    if (registerForm) {
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Disable submit button
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registering...';
+
+            // Get form data
+            const formData = {
+                first_name: document.getElementById('first_name').value,
+                middle_name: document.getElementById('middle_name').value,
+                last_name: document.getElementById('last_name').value,
+                gender: document.getElementById('gender').value,
+                email: document.getElementById('email').value,
+                phone_number: document.getElementById('phone_number').value,
+                dob: document.getElementById('dob').value,
+                marital_status: document.getElementById('marital_status').value,
+                nin: document.getElementById('nin').value,
+                password: document.getElementById('password').value,
+                password_confirmation: document.getElementById('password_confirmation').value
+            };
+
+            try {
+                const response = await axios.post(`${apiUrl}/register`, formData);
+                
+                if (response.data.status === 'success') {
+                    // Store user data and token
+                    localStorage.setItem('user', JSON.stringify(response.data.data.user));
+                    localStorage.setItem('token', response.data.data.token);
+                    
+                    // Show success message
+                    alert('Registration successful! Redirecting to OTP verification...');
+                    
+                    // Redirect to OTP page
+                    window.location.href = '{{ route("otp") }}';
+                } else {
+                    throw new Error(response.data.message || 'Registration failed');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                
+                let errorMessage = 'Registration failed. Please try again.';
+                
+                if (error.response) {
+                    if (error.response.data.message) {
+                        errorMessage = error.response.data.message;
+                    } else if (error.response.data.errors) {
+                        // Handle validation errors
+                        const errors = error.response.data.errors;
+                        errorMessage = Object.values(errors).flat().join('\n');
+                    }
+                }
+                
+               
+                
+                // Re-enable submit button
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = '{{ __("Register") }}';
+            }
+        });
+    }
+});
+</script>
 @endsection
