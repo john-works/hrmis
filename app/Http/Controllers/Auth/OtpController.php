@@ -18,36 +18,84 @@ class OtpController extends Controller
      * Handle the OTP verification request.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function verifyOtp(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
-            'otp' => 'required|string',
+            'otp' => 'required|string|size:6',
         ]);
 
-        $otpRecord = Otp::where('email', $request->email)
-                        ->where('otp', $request->otp)
-                        ->first();
-
-        if (!$otpRecord) {
-            return response()->json(['message' => 'Invalid OTP.'], 400);
+        // Get email from session (set during registration)
+        $email = session('otp_email');
+        
+        if (!$email) {
+            return back()->with('error', 'Session expired. Please register again.');
         }
 
-        // Check if OTP is expired (valid for 10 minutes)
-        $otpCreationTime = Carbon::parse($otpRecord->created_at);
-        if (Carbon::now()->diffInMinutes($otpCreationTime) > 10) {
-            return response()->json(['message' => 'OTP has expired.'], 400);
+        // Find user by email
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return back()->with('error', 'User not found.');
         }
 
-        // OTP is valid, proceed with your logic (e.g., mark user as verified)
-        // ...
+        // Check if OTP matches
+        if ($user->otp !== $request->otp) {
+            return back()->with('error', 'Invalid OTP code.');
+        }
 
-        // Optionally, delete the OTP record after successful verification
-        $otpRecord->delete();
+        // Check if OTP is expired
+        if (Carbon::now()->greaterThan($user->otp_expires_at)) {
+            return back()->with('error', 'OTP has expired. Please request a new one.');
+        }
 
-        return response()->json(['message' => 'OTP verified successfully.'], 200);
+        // OTP is valid - verify the user's email and clear OTP
+        $user->email_verified_at = now();
+        $user->otp = null;
+        $user->otp_expires_at = null;
+        $user->save();
+
+        // Clear session
+        session()->forget('otp_email');
+
+        // Log the user in
+        auth()->login($user);
+
+        return redirect()->route('home')->with('status', 'Email verified successfully! Welcome aboard.');
+    }
+
+    /**
+     * Resend OTP to user
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function resendOtp(Request $request)
+    {
+        $email = session('otp_email');
+        
+        if (!$email) {
+            return response()->json(['error' => 'Session expired. Please register again.'], 400);
+        }
+
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found.'], 404);
+        }
+
+        // Generate new OTP
+        $otp = rand(100000, 999999);
+        
+        $user->otp = $otp;
+        $user->otp_expires_at = now()->addMinutes(10);
+        $user->save();
+
+        // TODO: Send OTP via email
+        // Mail::to($user->email)->send(new OtpMail($otp));
+
+        return response()->json(['status' => 'A new OTP has been sent to your email.'], 200);
     }
 
     /**

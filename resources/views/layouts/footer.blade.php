@@ -1,6 +1,3 @@
-    
-    
-    @vite(['resources/sass/app.scss', 'resources/css/styles.css'])
     <!-- Footer -->
     <footer class="text-white py-5 px-4" style="background: linear-gradient(135deg, var(--psc-blue) 0%, var(--psc-dark) 100%);">
         <div class="container-fluid">

@@ -3067,6 +3067,438 @@ async function openDocumentModal(editItem = null) {
 	}
 	document.addEventListener('DOMContentLoaded', init);
 
-	})();
+	/* ========== Welcome Page Job Loading ========== */
+	/**
+	 * Load jobs for welcome.blade.php page
+	 * This function is called from welcome.blade.php
+	 */
+	window.WelcomePageJobs = {
+		jobsCache: [],
+		apiUrl: apiUrl, // Store apiUrl reference
+		
+		// Toast notification function
+		showToast: function(message, type = 'info') {
+			const toastContainer = document.getElementById('toastContainer');
+			if (!toastContainer) return;
+			
+			const toastId = 'toast-' + Date.now();
+			const toastHTML = `
+				<div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+					<div class="toast-header ${type}">
+						<strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+						<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+					</div>
+					<div class="toast-body">${message}</div>
+				</div>
+			`;
+			toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+			const toastEl = document.getElementById(toastId);
+			const bsToast = new bootstrap.Toast(toastEl, { autohide: true, delay: 4000 });
+			bsToast.show();
+			toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+		},
+		
+		// Fetch jobs from API
+		loadJobs: async function() {
+			const jobsListContainer = document.getElementById('jobsList');
+			const loadingSpinner = document.getElementById('jobsLoading');
+			
+			if (!jobsListContainer) return;
+
+			try {
+				const response = await axios.get(`${this.apiUrl}/positions`);
+				
+				// Handle response - check if data exists
+				let jobs = [];
+				if (response.data && Array.isArray(response.data)) {
+					jobs = response.data;
+				} else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+					jobs = response.data.data;
+				}
+
+				// Debug: Log the first job to see its structure
+				if (jobs.length > 0) {
+					console.log('Sample job data:', jobs[0]);
+					console.log('Available fields:', Object.keys(jobs[0]));
+				}
+
+				// Cache jobs for modal use
+				this.jobsCache = jobs;
+
+				// Hide loading spinner
+				if (loadingSpinner) loadingSpinner.style.display = 'none';
+
+				if (jobs.length === 0) {
+					jobsListContainer.innerHTML = '<div class="col-12 text-center"><p class="text-muted">No job openings available at the moment.</p></div>';
+					return;
+				}
+
+				// Clear container and render job cards
+				jobsListContainer.innerHTML = '';
+				jobs.forEach(job => {
+					// Get job title with multiple fallbacks
+					const jobTitle = job.title || job.position_title || job.name || job.position_name || job.job_title || 'Untitled Position';
+					
+					const jobCard = `
+						<div class="col-md-6 col-lg-4 mb-4">
+							<div class="card h-100 shadow-sm border-0">
+								<div class="card-body d-flex flex-column">
+									<h5 class="card-title text-primary mb-auto">${jobTitle}</h5>
+									<button class="btn btn-primary w-100 mt-3" data-job-id="${job.id}" data-bs-toggle="modal" data-bs-target="#jobDetailsModal">
+										Apply
+									</button>
+								</div>
+							</div>
+						</div>
+					`;
+					jobsListContainer.insertAdjacentHTML('beforeend', jobCard);
+				});
+
+				// Add click event listeners to all apply buttons
+				this.attachApplyButtonListeners();
+
+			} catch (error) {
+				console.error('Error loading jobs:', error);
+				if (loadingSpinner) loadingSpinner.style.display = 'none';
+				jobsListContainer.innerHTML = '<div class="col-12 text-center"><p class="text-danger">Failed to load job openings. Please try again later.</p></div>';
+				this.showToast('Failed to load job openings from server.', 'error');
+			}
+		},
+		
+		// Attach event listeners to apply buttons
+		attachApplyButtonListeners: function() {
+			document.querySelectorAll('[data-job-id]').forEach(button => {
+				button.addEventListener('click', (e) => {
+					const jobId = button.getAttribute('data-job-id');
+					const job = this.jobsCache.find(j => j.id == jobId);
+					
+					if (job) {
+						this.displayJobDetails(job);
+					}
+				});
+			});
+		},
+		
+		// Display job details in modal
+		displayJobDetails: function(job) {
+			// Update modal title with multiple fallbacks
+			const jobTitle = job.title || job.position_title || job.name || job.position_name || job.job_title || 'Job Details';
+			document.getElementById('jobDetailsModalLabel').textContent = jobTitle;
+			
+			// Parse responsibilities and qualifications if they are JSON strings
+			let responsibilities = [];
+			let qualifications = [];
+			
+			try {
+				if (typeof job.responsibilities === 'string') {
+					responsibilities = JSON.parse(job.responsibilities);
+				} else if (Array.isArray(job.responsibilities)) {
+					responsibilities = job.responsibilities;
+				}
+			} catch (e) {
+				responsibilities = job.responsibilities ? [job.responsibilities] : [];
+			}
+
+			try {
+				if (typeof job.qualifications === 'string') {
+					qualifications = JSON.parse(job.qualifications);
+				} else if (Array.isArray(job.qualifications)) {
+					qualifications = job.qualifications;
+				}
+			} catch (e) {
+				qualifications = job.qualifications ? [job.qualifications] : [];
+			}
+
+			// Format date
+			const formatDate = (dateStr) => {
+				if (!dateStr) return 'Not specified';
+				const date = new Date(dateStr);
+				return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+			};
+
+			// Build modal body content
+			let content = `
+				<div class="mb-4">
+					<div class="row g-3">
+						<div class="col-md-4">
+							<h6 class="text-primary mb-2"><i class="bi bi-geo-alt-fill me-1"></i> Location</h6>
+							<p class="mb-0">${job.location || job.work_location || 'Not specified'}</p>
+						</div>
+						<div class="col-md-4">
+							<h6 class="text-primary mb-2"><i class="bi bi-clock-fill me-1"></i> Employment Type</h6>
+							<p class="mb-0">${job.employment_type || job.type || 'Full Time'}</p>
+						</div>
+						<div class="col-md-4">
+							<h6 class="text-primary mb-2"><i class="bi bi-calendar-event me-1"></i> Posted Date</h6>
+							<p class="mb-0">${formatDate(job.created_at || job.posted_date)}</p>
+						</div>
+					</div>
+					${job.deadline || job.application_deadline ? `
+					<div class="alert alert-info mt-3">
+						<i class="bi bi-info-circle me-2"></i>
+						<strong>Application Deadline:</strong> ${formatDate(job.deadline || job.application_deadline)}
+					</div>
+					` : ''}
+				</div>
+
+				<hr>
+
+				${job.description ? `
+				<div class="mb-4">
+					<h6 class="text-primary fw-bold mb-3">
+						<i class="bi bi-file-text me-2"></i>Job Description
+					</h6>
+					<p>${job.description}</p>
+				</div>
+				` : ''}
+
+				${responsibilities.length > 0 ? `
+				<div class="mb-4">
+					<h6 class="text-primary fw-bold mb-3">
+						<i class="bi bi-list-check me-2"></i>Key Responsibilities
+					</h6>
+					<ul class="list-group list-group-flush">
+						${responsibilities.map(resp => `<li class="list-group-item">${resp}</li>`).join('')}
+					</ul>
+				</div>
+				` : ''}
+
+				${qualifications.length > 0 ? `
+				<div class="mb-4">
+					<h6 class="text-primary fw-bold mb-3">
+						<i class="bi bi-mortarboard me-2"></i>Required Qualifications
+					</h6>
+					<ul class="list-group list-group-flush">
+						${qualifications.map(qual => `<li class="list-group-item">${qual}</li>`).join('')}
+					</ul>
+				</div>
+				` : ''}
+			`;
+			
+			document.getElementById('jobDetailsModalBody').innerHTML = content;
+
+			// Store job ID in apply button for later use
+			const applyBtn = document.getElementById('btnApplyFromModal');
+			if (applyBtn) {
+				applyBtn.setAttribute('data-job-id', job.id);
+			}
+		}
+	};
+
+})();
+
+/* ========== Welcome Page Jobs - Outside IIFE ========== */
+window.WelcomePageJobs = {
+	jobsCache: [],
+	apiUrl: 'http://192.168.32.215:8041/api/v1',
+	
+	// Toast notification function
+	showToast: function(message, type = 'info') {
+		const toastContainer = document.getElementById('toastContainer');
+		if (!toastContainer) return;
+		
+		const toastId = 'toast-' + Date.now();
+		const toastHTML = `
+			<div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+				<div class="toast-header ${type}">
+					<strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+					<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+				</div>
+				<div class="toast-body">${message}</div>
+			</div>
+		`;
+		toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+		const toastEl = document.getElementById(toastId);
+		const bsToast = new bootstrap.Toast(toastEl, { autohide: true, delay: 4000 });
+		bsToast.show();
+		toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+	},
+	
+	// Fetch jobs from API
+	loadJobs: async function() {
+		const jobsListContainer = document.getElementById('jobsList');
+		const loadingSpinner = document.getElementById('jobsLoading');
+		
+		if (!jobsListContainer) return;
+
+		try {
+			const response = await axios.get(`${this.apiUrl}/positions`);
+			
+			// Handle response - check if data exists
+			let jobs = [];
+			if (response.data && Array.isArray(response.data)) {
+				jobs = response.data;
+			} else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+				jobs = response.data.data;
+			}
+
+			// Debug: Log the first job to see its structure
+			if (jobs.length > 0) {
+				console.log('Sample job data:', jobs[0]);
+				console.log('Available fields:', Object.keys(jobs[0]));
+			}
+
+			// Cache jobs for modal use
+			this.jobsCache = jobs;
+
+			// Hide loading spinner
+			if (loadingSpinner) loadingSpinner.style.display = 'none';
+
+			if (jobs.length === 0) {
+				jobsListContainer.innerHTML = '<div class="col-12 text-center"><p class="text-muted">No job openings available at the moment.</p></div>';
+				return;
+			}
+
+			// Clear container and render job cards
+			jobsListContainer.innerHTML = '';
+			jobs.forEach(job => {
+				// Get job title with multiple fallbacks
+				const jobTitle = job.title || job.position_title || job.name || job.position_name || job.job_title || 'Untitled Position';
+				
+				const jobCard = `
+					<div class="col-md-6 col-lg-4 mb-4">
+						<div class="card h-100 shadow-sm border-0">
+							<div class="card-body d-flex flex-column">
+								<h5 class="card-title text-primary mb-auto">${jobTitle}</h5>
+								<button class="btn btn-primary w-100 mt-3" data-job-id="${job.id}" data-bs-toggle="modal" data-bs-target="#jobDetailsModal">
+									Apply
+								</button>
+							</div>
+						</div>
+					</div>
+				`;
+				jobsListContainer.insertAdjacentHTML('beforeend', jobCard);
+			});
+
+			// Add click event listeners to all apply buttons
+			this.attachApplyButtonListeners();
+
+		} catch (error) {
+			console.error('Error loading jobs:', error);
+			if (loadingSpinner) loadingSpinner.style.display = 'none';
+			jobsListContainer.innerHTML = '<div class="col-12 text-center"><p class="text-danger">Failed to load job openings. Please try again later.</p></div>';
+			this.showToast('Failed to load job openings from server.', 'error');
+		}
+	},
+	
+	// Attach event listeners to apply buttons
+	attachApplyButtonListeners: function() {
+		document.querySelectorAll('[data-job-id]').forEach(button => {
+			button.addEventListener('click', (e) => {
+				const jobId = button.getAttribute('data-job-id');
+				const job = this.jobsCache.find(j => j.id == jobId);
+				
+				if (job) {
+					this.displayJobDetails(job);
+				}
+			});
+		});
+	},
+	
+	// Display job details in modal
+	displayJobDetails: function(job) {
+		// Update modal title with multiple fallbacks
+		const jobTitle = job.title || job.position_title || job.name || job.position_name || job.job_title || 'Job Details';
+		document.getElementById('jobDetailsModalLabel').textContent = jobTitle;
+		
+		// Parse responsibilities and qualifications if they are JSON strings
+		let responsibilities = [];
+		let qualifications = [];
+		
+		try {
+			if (typeof job.responsibilities === 'string') {
+				responsibilities = JSON.parse(job.responsibilities);
+			} else if (Array.isArray(job.responsibilities)) {
+				responsibilities = job.responsibilities;
+			}
+		} catch (e) {
+			responsibilities = job.responsibilities ? [job.responsibilities] : [];
+		}
+
+		try {
+			if (typeof job.qualifications === 'string') {
+				qualifications = JSON.parse(job.qualifications);
+			} else if (Array.isArray(job.qualifications)) {
+				qualifications = job.qualifications;
+			}
+		} catch (e) {
+			qualifications = job.qualifications ? [job.qualifications] : [];
+		}
+
+		// Format date
+		const formatDate = (dateStr) => {
+			if (!dateStr) return 'Not specified';
+			const date = new Date(dateStr);
+			return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+		};
+
+		// Build modal body content
+		let content = `
+			<div class="mb-4">
+				<div class="row g-3">
+					<div class="col-md-4">
+						<h6 class="text-primary mb-2"><i class="bi bi-geo-alt-fill me-1"></i> Location</h6>
+						<p class="mb-0">${job.location || job.work_location || 'Not specified'}</p>
+					</div>
+					<div class="col-md-4">
+						<h6 class="text-primary mb-2"><i class="bi bi-clock-fill me-1"></i> Employment Type</h6>
+						<p class="mb-0">${job.employment_type || job.type || 'Full Time'}</p>
+					</div>
+					<div class="col-md-4">
+						<h6 class="text-primary mb-2"><i class="bi bi-calendar-event me-1"></i> Posted Date</h6>
+						<p class="mb-0">${formatDate(job.created_at || job.posted_date)}</p>
+					</div>
+				</div>
+				${job.deadline || job.application_deadline ? `
+				<div class="alert alert-info mt-3">
+					<i class="bi bi-info-circle me-2"></i>
+					<strong>Application Deadline:</strong> ${formatDate(job.deadline || job.application_deadline)}
+				</div>
+				` : ''}
+			</div>
+
+			<hr>
+
+			${job.description ? `
+			<div class="mb-4">
+				<h6 class="text-primary fw-bold mb-3">
+					<i class="bi bi-file-text me-2"></i>Job Description
+				</h6>
+				<p>${job.description}</p>
+			</div>
+			` : ''}
+
+			${responsibilities.length > 0 ? `
+			<div class="mb-4">
+				<h6 class="text-primary fw-bold mb-3">
+					<i class="bi bi-list-check me-2"></i>Key Responsibilities
+				</h6>
+				<ul class="list-group list-group-flush">
+					${responsibilities.map(resp => `<li class="list-group-item">${resp}</li>`).join('')}
+				</ul>
+			</div>
+			` : ''}
+
+			${qualifications.length > 0 ? `
+			<div class="mb-4">
+				<h6 class="text-primary fw-bold mb-3">
+					<i class="bi bi-mortarboard me-2"></i>Required Qualifications
+				</h6>
+				<ul class="list-group list-group-flush">
+					${qualifications.map(qual => `<li class="list-group-item">${qual}</li>`).join('')}
+				</ul>
+			</div>
+			` : ''}
+		`;
+		
+		document.getElementById('jobDetailsModalBody').innerHTML = content;
+
+		// Store job ID in apply button for later use
+		const applyBtn = document.getElementById('btnApplyFromModal');
+		if (applyBtn) {
+			applyBtn.setAttribute('data-job-id', job.id);
+		}
+	}
+};
 	
 	

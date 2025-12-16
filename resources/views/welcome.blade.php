@@ -150,9 +150,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Display job details in modal
     function displayJobDetails(job) {
-        // Update modal title with multiple fallbacks
-        const jobTitle = job.title || job.position_title || job.name || job.position_name || job.job_title || 'Job Details';
-        document.getElementById('jobDetailsModalLabel').textContent = jobTitle;
+        // Update modal title
+        document.getElementById('jobDetailsModalLabel').textContent = job.title || job.position_title || 'Job Details';
         
         // Parse responsibilities and qualifications if they are JSON strings
         let responsibilities = [];

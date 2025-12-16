@@ -15,8 +15,8 @@
                         <p class="text-muted small mb-0">
                             We've sent a 6-digit verification code to your email address
                         </p>
-                        @if(session('email'))
-                            <p class="text-primary small fw-medium mt-1">{{ session('email') }}</p>
+                        @if(session('otp_email'))
+                            <p class="text-primary small fw-medium mt-1">{{ session('otp_email') }}</p>
                         @endif
                     </div>
 
@@ -75,8 +75,8 @@
 
                     <!-- Back Link -->
                     <div class="text-center mt-4">
-                        <a href="{{ route('password.request') }}" class="text-muted small text-decoration-none">
-                            <i class="bi bi-arrow-left me-1"></i> Back to Password Reset
+                        <a href="{{ route('register') }}" class="text-muted small text-decoration-none">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Registration
                         </a>
                     </div>
                 </div>
@@ -92,4 +92,127 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const otpInputs = document.querySelectorAll('.otp-input');
+    const otpCodeInput = document.getElementById('otpCode');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const resendBtn = document.getElementById('resendBtn');
+    const resendText = document.getElementById('resendText');
+    const resendTimer = document.getElementById('resendTimer');
+    const countdown = document.getElementById('countdown');
+    
+    let timeLeft = 60;
+    let timerInterval;
+
+    // OTP Input handling
+    otpInputs.forEach((input, index) => {
+        input.addEventListener('input', function(e) {
+            const value = e.target.value;
+            
+            // Only allow numbers
+            if (!/^\d*$/.test(value)) {
+                e.target.value = '';
+                return;
+            }
+
+            if (value.length === 1 && index < otpInputs.length - 1) {
+                otpInputs[index + 1].focus();
+            }
+
+            updateOtpCode();
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                otpInputs[index - 1].focus();
+            }
+        });
+
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').replace(/\D/g, '');
+            
+            for (let i = 0; i < pastedData.length && index + i < otpInputs.length; i++) {
+                otpInputs[index + i].value = pastedData[i];
+            }
+            
+            updateOtpCode();
+            
+            const lastFilledIndex = Math.min(index + pastedData.length, otpInputs.length - 1);
+            otpInputs[lastFilledIndex].focus();
+        });
+    });
+
+    function updateOtpCode() {
+        const code = Array.from(otpInputs).map(input => input.value).join('');
+        otpCodeInput.value = code;
+        verifyBtn.disabled = code.length !== 6;
+    }
+
+    // Resend OTP
+    resendBtn.addEventListener('click', function() {
+        if (resendBtn.disabled) return;
+        
+        resendBtn.disabled = true;
+        resendText.classList.add('d-none');
+        resendTimer.classList.remove('d-none');
+        
+        // Make AJAX request to resend OTP
+        fetch('{{ route('password.resend-otp') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status) {
+                showAlert('success', data.status);
+            } else if (data.error) {
+                showAlert('danger', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('danger', 'Failed to resend OTP. Please try again.');
+        });
+        
+        // Start countdown
+        timeLeft = 60;
+        countdown.textContent = timeLeft;
+        
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            countdown.textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                resendBtn.disabled = false;
+                resendText.classList.remove('d-none');
+                resendTimer.classList.add('d-none');
+            }
+        }, 1000);
+    });
+
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        const form = document.getElementById('otpForm');
+        form.parentNode.insertBefore(alertDiv, form);
+        
+        setTimeout(() => alertDiv.remove(), 5000);
+    }
+
+    // Focus first input on load
+    otpInputs[0].focus();
+});
+</script>
 @endsection

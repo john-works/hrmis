@@ -65,7 +65,7 @@
 
 
         <!-- Application Area -->
-    <div class="container-xxl py-4" id="applicationDashboard" style="display:none;">
+    <div class="container-xxl py-4" id="applicationDashboard" style="display:block;">
         <div class="row">
             <!-- Sidebar -->
             <aside class="col-md-3 sidebar d-none d-md-block">
@@ -103,10 +103,7 @@
             }
         }
 
-        // Redirect to login.html for phone models
-        if (window.innerWidth <= 767) {
-            window.location.href = 'login.html';
-        }
+       
     </script>
 
     </div>

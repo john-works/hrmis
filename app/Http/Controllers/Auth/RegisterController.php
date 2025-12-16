@@ -28,7 +28,7 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/otp';
 
     /**
      * Create a new controller instance.
@@ -54,7 +54,9 @@ class RegisterController extends Controller
             'middle_name' => ['nullable', 'string', 'max:255'],
             'gender' => ['required', 'string', 'max:10'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'phone_number' => ['required', 'string', 'max:20'],
             'dob' => ['required', 'date'],
+            'marital_status' => ['required', 'string', 'max:20'],
             'nin' => ['required', 'string', 'max:20', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
@@ -68,15 +70,30 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        // Generate OTP
+        $otp = rand(100000, 999999);
+        
+        $user = User::create([
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
-            'middle_name' => $data['middle_name'],
+            'middle_name' => $data['middle_name'] ?? null,
             'gender' => $data['gender'],
             'dob' => $data['dob'],
+            'marital_status' => $data['marital_status'],
+            'phone_number' => $data['phone_number'],
             'nin' => $data['nin'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'otp' => $otp,
+            'otp_expires_at' => now()->addMinutes(10),
         ]);
+        
+        // Store email in session for OTP verification
+        session(['otp_email' => $user->email]);
+        
+        // TODO: Send OTP via email
+        // Mail::to($user->email)->send(new OtpMail($otp));
+        
+        return $user;
     }
 }
