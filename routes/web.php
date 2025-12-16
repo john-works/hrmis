@@ -14,7 +14,7 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 // OTP Routes
 Route::get('/otp', function () {
-    return view('otp');
+    return view('auth.otp');
 })->name('otp');
 
 Route::post('/otp', [OtpController::class, 'verifyOtp'])->name('password.otp');

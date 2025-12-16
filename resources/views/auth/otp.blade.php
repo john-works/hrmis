@@ -18,6 +18,12 @@
                         @if(session('otp_email'))
                             <p class="text-primary small fw-medium mt-1">{{ session('otp_email') }}</p>
                         @endif
+                        @if(session('otp_code'))
+                            <div class="alert alert-info mt-2">
+                                <strong>Your OTP Code (for testing):</strong> {{ session('otp_code') }}
+                            </div>
+                        @endif
+                        <p class="text-primary small fw-medium mt-1" id="displayEmail"></p>
                     </div>
 
                     <!-- Alert Messages -->
@@ -56,6 +62,7 @@
                                 <input type="text" class="otp-input" maxlength="1" data-index="5" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
                             </div>
                             <input type="hidden" id="otpCode" name="otp">
+                            <input type="hidden" id="emailInput" name="email">
                         </div>
 
                         <button class="btn btn-primary w-100 mb-3 py-2 fw-medium" type="submit" id="verifyBtn" disabled>
@@ -97,11 +104,43 @@
 document.addEventListener('DOMContentLoaded', function() {
     const otpInputs = document.querySelectorAll('.otp-input');
     const otpCodeInput = document.getElementById('otpCode');
+    const emailInput = document.getElementById('emailInput');
     const verifyBtn = document.getElementById('verifyBtn');
     const resendBtn = document.getElementById('resendBtn');
     const resendText = document.getElementById('resendText');
     const resendTimer = document.getElementById('resendTimer');
     const countdown = document.getElementById('countdown');
+    
+    // Get email from sessionStorage and set it in the hidden field
+    const email = sessionStorage.getItem('otp_email');
+    if (email) {
+        emailInput.value = email;
+        // Display the email on the page
+        const displayEmail = document.getElementById('displayEmail');
+        if (displayEmail) {
+            displayEmail.textContent = email;
+        }
+    } else {
+        console.error('No email found in sessionStorage');
+        alert('Session expired. Please register again.');
+    }
+    
+    // Display OTP code from sessionStorage if available (for testing)
+    const otpCode = sessionStorage.getItem('otp_code');
+    if (otpCode) {
+        console.log('OTP Code from API:', otpCode);
+        
+        // Create and display alert with OTP
+        const otpAlert = document.createElement('div');
+        otpAlert.className = 'alert alert-info mt-2';
+        otpAlert.innerHTML = `<strong>Your OTP Code (from API):</strong> ${otpCode}`;
+        
+        // Insert after the email display
+        const headerSection = document.querySelector('.text-center.mb-4');
+        if (headerSection) {
+            headerSection.appendChild(otpAlert);
+        }
+    }
     
     let timeLeft = 60;
     let timerInterval;
@@ -151,6 +190,81 @@ document.addEventListener('DOMContentLoaded', function() {
         verifyBtn.disabled = code.length !== 6;
     }
 
+    // Form submission - verify OTP via API
+    const otpForm = document.getElementById('otpForm');
+    if (otpForm) {
+        otpForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const code = otpCodeInput.value;
+            const email = emailInput.value;
+            
+            if (!email) {
+                alert('Session expired. Please register again.');
+                return;
+            }
+            
+            // Disable button and show loading
+            verifyBtn.disabled = true;
+            document.getElementById('btnText').textContent = 'Verifying...';
+            document.getElementById('btnSpinner').classList.remove('d-none');
+            
+            try {
+                const apiUrl = 'http://192.168.32.215:8041/api/v1';
+                const response = await axios.post(`${apiUrl}/validate_code`, {
+                    code: code,
+                    email: email
+                });
+                
+                console.log('OTP Verification Response:', response.data);
+                
+                // Check if verification was successful
+                if (response.status === 200 || response.status === 201) {
+                    // Store user and token if provided
+                    if (response.data.user) {
+                        localStorage.setItem('user', JSON.stringify(response.data.user));
+                    }
+                    if (response.data.token) {
+                        localStorage.setItem('token', response.data.token);
+                    }
+                    
+                    // Clear sessionStorage
+                    sessionStorage.removeItem('otp_email');
+                    sessionStorage.removeItem('otp_code');
+                    
+                    alert('Email verified successfully! Redirecting...');
+                    
+                    // Redirect to home page
+                    window.location.href = '{{ route("home") }}';
+                } else {
+                    throw new Error('Verification failed');
+                }
+            } catch (error) {
+                console.error('OTP Verification Error:', error);
+                
+                let errorMessage = 'Invalid OTP code. Please try again.';
+                if (error.response && error.response.data && error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                }
+                
+                alert(errorMessage);
+                
+                // Clear OTP inputs
+                otpInputs.forEach(input => {
+                    input.value = '';
+                    input.classList.remove('filled');
+                });
+                otpCodeInput.value = '';
+                verifyBtn.disabled = true;
+                otpInputs[0].focus();
+            } finally {
+                // Re-enable button
+                document.getElementById('btnText').textContent = 'Verify Code';
+                document.getElementById('btnSpinner').classList.add('d-none');
+            }
+        });
+    }
+
     // Resend OTP
     resendBtn.addEventListener('click', function() {
         if (resendBtn.disabled) return;
@@ -159,13 +273,17 @@ document.addEventListener('DOMContentLoaded', function() {
         resendText.classList.add('d-none');
         resendTimer.classList.remove('d-none');
         
+        // Get email from sessionStorage
+        const email = sessionStorage.getItem('otp_email');
+        
         // Make AJAX request to resend OTP
         fetch('{{ route('password.resend-otp') }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            }
+            },
+            body: JSON.stringify({ email: email })
         })
         .then(response => response.json())
         .then(data => {

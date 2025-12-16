@@ -26,18 +26,22 @@ class OtpController extends Controller
             'otp' => 'required|string|size:6',
         ]);
 
-        // Get email from session (set during registration)
-        $email = session('otp_email');
+        // Get email from request or session
+        $email = $request->input('email') ?: session('otp_email');
+        
+        \Log::info('OTP Verification - Email received:', ['email' => $email, 'otp' => $request->otp]);
         
         if (!$email) {
             return back()->with('error', 'Session expired. Please register again.');
         }
 
-        // Find user by email
-        $user = User::where('email', $email)->first();
+        // Find user by email (case-insensitive)
+        $user = User::whereRaw('LOWER(email) = ?', [strtolower($email)])->first();
+
+        \Log::info('OTP Verification - User found:', ['user' => $user ? $user->email : 'null']);
 
         if (!$user) {
-            return back()->with('error', 'User not found.');
+            return back()->with('error', 'User not found. Email: ' . $email);
         }
 
         // Check if OTP matches
@@ -73,7 +77,8 @@ class OtpController extends Controller
      */
     public function resendOtp(Request $request)
     {
-        $email = session('otp_email');
+        // Get email from request or session
+        $email = $request->input('email') ?: session('otp_email');
         
         if (!$email) {
             return response()->json(['error' => 'Session expired. Please register again.'], 400);

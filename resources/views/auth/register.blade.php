@@ -150,18 +150,40 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const response = await axios.post(`${apiUrl}/register`, formData);
                 
-                if (response.data.status === 'success') {
-                    // Store user data and token
-                    localStorage.setItem('user', JSON.stringify(response.data.data.user));
-                    localStorage.setItem('token', response.data.data.token);
+                console.log('API Response:', response.data);
+                
+                // Check if response is successful (status 200 or 201)
+                if (response.status === 200 || response.status === 201) {
+                    // Store user data if provided
+                    if (response.data.data && response.data.data.user) {
+                        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+                    }
+                    if (response.data.data && response.data.data.token) {
+                        localStorage.setItem('token', response.data.data.token);
+                    }
                     
-                    // Show success message
-                    alert('Registration successful! Redirecting to OTP verification...');
+                    // Store email for OTP verification
+                    if (formData.email) {
+                        sessionStorage.setItem('otp_email', formData.email);
+                    }
+                    
+                    // Extract OTP code from message if present
+                    const message = response.data.message || 'Registration successful!';
+                    let otpCode = null;
+                    
+                    // Try to extract 6-digit OTP from message
+                    const otpMatch = message.match(/\b\d{6}\b/);
+                    if (otpMatch) {
+                        otpCode = otpMatch[0];
+                        sessionStorage.setItem('otp_code', otpCode);
+                        console.log('OTP Code extracted:', otpCode);
+                    }
+                    
+                    // Show success message with OTP code
+                    alert(message + '\nRedirecting to OTP verification...');
                     
                     // Redirect to OTP page
                     window.location.href = '{{ route("otp") }}';
-                } else {
-                    throw new Error(response.data.message || 'Registration failed');
                 }
             } catch (error) {
                 console.error('Registration error:', error);
@@ -176,9 +198,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         const errors = error.response.data.errors;
                         errorMessage = Object.values(errors).flat().join('\n');
                     }
+                } else if (error.message) {
+                    errorMessage = error.message;
                 }
                 
-               
+                alert(errorMessage);
                 
                 // Re-enable submit button
                 registerBtn.disabled = false;

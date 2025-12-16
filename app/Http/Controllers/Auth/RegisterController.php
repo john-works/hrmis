@@ -88,8 +88,12 @@ class RegisterController extends Controller
             'otp_expires_at' => now()->addMinutes(10),
         ]);
         
-        // Store email in session for OTP verification
+        // Store email and OTP in session for OTP verification
         session(['otp_email' => $user->email]);
+        session(['otp_code' => $otp]); // Store OTP for display (remove in production)
+        
+        // Log OTP to console/logs for testing (remove in production)
+        \Log::info('OTP Generated for ' . $user->email . ': ' . $otp);
         
         // TODO: Send OTP via email
         // Mail::to($user->email)->send(new OtpMail($otp));
