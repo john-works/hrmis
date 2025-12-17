@@ -1001,6 +1001,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     targetSection.classList.remove('d-none');
                 }
 
+                // Special handling for previewApplication - call loadPreview instead of API fetch
+                if (section === 'previewApplication') {
+                    if (typeof loadPreview === 'function') {
+                        loadPreview();
+                    } else {
+                        const previewSection = document.querySelector('section[data-step-content="previewApplication"]');
+                        if (previewSection) {
+                            previewSection.innerHTML = '<div class="alert alert-warning">Preview functionality not loaded. Please refresh the page.</div>';
+                        }
+                    }
+                    return; // Skip API fetch for previewApplication
+                }
+
                 // Add event listeners for buttons in the section
                 if (section === 'educationTraining') {
                     const btnAddEducation = document.getElementById('btnAddEducation');
@@ -1037,6 +1050,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Load data for the section if API is available
                 if (typeof window.API !== 'undefined') {
                     // Map section names to API endpoints
+                    const apiUrl = 'http://192.168.32.215:8041/api/v1';
+                    let user = null;
+                    try { user = JSON.parse(localStorage.getItem('user')); } catch {}
+                    const userId = user && user.id ? user.id : 1;
                     const sectionApiMap = {
                         personalDetails: API.personalDetails ? API.personalDetails : null,
                         educationTraining: API.educationTraining,
@@ -1045,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         documents: API.documents,
                         referee: API.referee,
                         dependants: API.dependants,
-                        previewApplication: API.getMyApplications,
+                        previewApplication: `${apiUrl}/applications/${userId}`,
                         selectJob: API.selectJob
                     };
 
@@ -1055,29 +1072,41 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (typeof endpoint === 'function') {
                             url = endpoint(1);
                         }
-                            fetch(url)
-                                .then(async res => {
-                                    const contentType = res.headers.get('content-type');
-                                    if (contentType && contentType.includes('application/json')) {
-                                        return res.json();
-                                    } else {
-                                        // Try to get text and show a user-friendly error
-                                        const text = await res.text();
-                                        throw new Error('API did not return JSON.\nStatus: ' + res.status + '\n' + text.substring(0, 200));
+                        fetch(url)
+                            .then(async res => {
+                                const contentType = res.headers.get('content-type');
+                                if (res.ok && contentType && contentType.includes('application/json')) {
+                                    return res.json();
+                                } else if (!res.ok) {
+                                    // API error (e.g. 500), try to get text and show a user-friendly error
+                                    const text = await res.text();
+                                    throw new Error('Server error (' + res.status + '). Please try again later.');
+                                } else {
+                                    // Not JSON, but not an error code
+                                    const text = await res.text();
+                                    throw new Error('API did not return JSON.');
+                                }
+                            })
+                            .then(data => {
+                                console.log('Loaded data for', section, data);
+                                // Populate forms with data if available
+                                populateSectionData(section, data);
+                            })
+                            .catch(err => {
+                                // Show error in previewApplication section if that's the section
+                                if (section === 'previewApplication') {
+                                    const previewSection = document.querySelector('section[data-step-content="previewApplication"]');
+                                    if (previewSection) {
+                                        previewSection.innerHTML = `<div class='alert alert-danger'>Failed to load application preview.<br>${err.message}</div>`;
                                     }
-                                })
-                                .then(data => {
-                                    console.log('Loaded data for', section, data);
-                                    // Populate forms with data if available
-                                    populateSectionData(section, data);
-                                })
-                                .catch(err => {
+                                } else {
                                     const mainContent = document.getElementById('mainContent');
                                     if (mainContent) {
                                         mainContent.innerHTML = `<div class='alert alert-danger'>Failed to load data for <b>${section}</b>.<br>${err.message}</div>`;
                                     }
-                                    console.error('API error for', section, err);
-                                });
+                                }
+                                console.error('API error for', section, err);
+                            });
                     }
                 }
             };

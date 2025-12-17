@@ -87,6 +87,37 @@ window.API = {
 	const crudItemIdInput = document.getElementById('crudItemId');
 	const crudSaveBtn = document.getElementById('crudSaveBtn');
 
+	// Fix accessibility issue with inert on modal
+	if (crudModalEl) {
+		// Use MutationObserver to prevent aria-hidden from being set
+		const observer = new MutationObserver(function(mutations) {
+			mutations.forEach(function(mutation) {
+				if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
+					crudModalEl.removeAttribute('aria-hidden');
+				}
+			});
+		});
+		observer.observe(crudModalEl, {
+			attributes: true,
+			attributeFilter: ['aria-hidden']
+		});
+
+		crudModalEl.addEventListener('show.bs.modal', function() {
+			crudModalEl.removeAttribute('inert');
+		});
+		crudModalEl.addEventListener('hide.bs.modal', function() {
+			// Blur any focused element inside the modal before hiding
+			if (document.activeElement && crudModalEl.contains(document.activeElement)) {
+				document.activeElement.blur();
+			}
+			// Return focus to the button that opened the modal before hiding
+			if (window.lastModalOpener) {
+				window.lastModalOpener.focus();
+			}
+			crudModalEl.setAttribute('inert', '');
+		});
+	}
+
 	// Bootstrap modal for Job Details
 	const jobDetailsModalEl = document.getElementById('jobDetailsModal');
 	const jobDetailsModal = jobDetailsModalEl ? new bootstrap.Modal(jobDetailsModalEl) : null;
@@ -2685,27 +2716,27 @@ async function openDocumentModal(editItem = null) {
 		// Attach Add button event listeners after all modal functions are defined
 		const btnAddEducation = document.getElementById('btnAddEducation');
 		if (btnAddEducation && typeof window.openEducationModal === 'function') {
-			btnAddEducation.onclick = () => window.openEducationModal();
+			btnAddEducation.onclick = (e) => { window.lastModalOpener = e.target; window.openEducationModal(); };
 		}
 		const btnAddMembership = document.getElementById('btnAddMembership');
 		if (btnAddMembership && typeof window.openMembershipModal === 'function') {
-			btnAddMembership.onclick = () => window.openMembershipModal();
+			btnAddMembership.onclick = (e) => { window.lastModalOpener = e.target; window.openMembershipModal(); };
 		}
 		const btnAddEmployment = document.getElementById('btnAddEmployment');
 		if (btnAddEmployment && typeof window.openEmploymentModal === 'function') {
-			btnAddEmployment.onclick = () => window.openEmploymentModal();
+			btnAddEmployment.onclick = (e) => { window.lastModalOpener = e.target; window.openEmploymentModal(); };
 		}
 		const btnAddDocument = document.getElementById('btnAddDocument');
 		if (btnAddDocument && typeof window.openDocumentModal === 'function') {
-			btnAddDocument.onclick = () => window.openDocumentModal();
+			btnAddDocument.onclick = (e) => { window.lastModalOpener = e.target; window.openDocumentModal(); };
 		}
 		const btnAddReferee = document.getElementById('btnAddReferee');
 		if (btnAddReferee && typeof window.openRefereeModal === 'function') {
-			btnAddReferee.onclick = () => window.openRefereeModal();
+			btnAddReferee.onclick = (e) => { window.lastModalOpener = e.target; window.openRefereeModal(); };
 		}
 		const btnAddDependant = document.getElementById('btnAddDependant');
 		if (btnAddDependant && typeof window.openDependantModal === 'function') {
-			btnAddDependant.onclick = () => window.openDependantModal();
+			btnAddDependant.onclick = (e) => { window.lastModalOpener = e.target; window.openDependantModal(); };
 		}
 	}
 	document.addEventListener('DOMContentLoaded', init);
