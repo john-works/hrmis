@@ -1,3 +1,15 @@
+    <script>
+    // Show a specific section from anywhere (e.g., from My Profile in navbar)
+    function showSection(sectionName) {
+        // Hide home page, show application dashboard
+        document.getElementById('homePage').style.display = 'none';
+        document.getElementById('applicationDashboard').style.display = 'block';
+        // Use the existing loadSection to show the right section
+        if (typeof loadSection === 'function') {
+            loadSection(sectionName);
+        }
+    }
+    </script>
 
  @extends('layouts.app')
 
@@ -305,6 +317,53 @@
 
 
 
+            
+
+                <!-- Preview Application Section -->
+                <section data-step-content="previewApplication">
+                    <!-- Content will be loaded here by loadPreview() -->
+                </section>
+
+                <!-- Select Job Section -->
+                <section data-step-content="selectJob">
+                    <h4 class="mb-4"><i class="fas fa-tasks me-2"></i>Select a Job</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="jobTable">
+                            <thead>
+                                <tr>
+                                    <th>Position</th>
+                                    <th>Location</th>
+                                    <th>Deadline</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- My Applications Section -->
+                <section data-step-content="myApplication">
+                    <h4 class="mb-4"><i class="fas fa-list me-2"></i>My Applications</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="myApplicationsTable">
+                            <thead>
+                                <tr>
+                                    <th>Interview ID</th>
+                                    <th>Position</th>
+                                    <th>Department</th>
+                                    <th>Application Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+
+
+
 
 
     <script>
@@ -375,7 +434,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const toastId = 'toast-' + Date.now();
         const toastHTML = `
             <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header ${type}">
+                <div <div class="toast-header warning">
+                    <strong class="me-auto">Warning</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>class="toast-header ${type}">
                     <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
                     <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
@@ -436,20 +498,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    // Also fetch on page load for visible sections
-    tableConfigs.forEach(cfg => {
-        const sectionEl = document.querySelector(`section[data-step-content="${cfg.section}"]`);
-        if (sectionEl && !sectionEl.classList.contains('d-none')) {
-            fetchAndRender(cfg.section);
-        }
-    });
+    // Do NOT fetch and show warning toasts on page load. Only do so on sidebar click.
 });
 </script>                    
                         
                         
                         
                         
-                        <script>
+     <script>
                         // Fetch and render documents from API when the documents section is shown
                         document.addEventListener('DOMContentLoaded', function() {
                             const documentsSection = document.querySelector('section[data-step-content="documents"]');
@@ -535,50 +591,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </section>
 
-            
-
-                <!-- Preview Application Section -->
-                <section data-step-content="previewApplication">
-                    <!-- Content will be loaded here by loadPreview() -->
-                </section>
-
-                <!-- Select Job Section -->
-                <section data-step-content="selectJob">
-                    <h4 class="mb-4"><i class="fas fa-tasks me-2"></i>Select a Job</h4>
-                    <div class="table-responsive">
-                        <table class="table table-striped" id="jobTable">
-                            <thead>
-                                <tr>
-                                    <th>Position</th>
-                                    <th>Location</th>
-                                    <th>Deadline</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- My Applications Section -->
-                <section data-step-content="myApplication">
-                    <h4 class="mb-4"><i class="fas fa-list me-2"></i>My Applications</h4>
-                    <div class="table-responsive">
-                        <table class="table table-striped" id="myApplicationsTable">
-                            <thead>
-                                <tr>
-                                    <th>Interview ID</th>
-                                    <th>Position</th>
-                                    <th>Department</th>
-                                    <th>Application Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-            </main>
 
             <!-- Bootstrap JS (must be before app.js) -->
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1003,13 +1015,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Special handling for previewApplication - call loadPreview instead of API fetch
                 if (section === 'previewApplication') {
-                    if (typeof loadPreview === 'function') {
-                        loadPreview();
-                    } else {
-                        const previewSection = document.querySelector('section[data-step-content="previewApplication"]');
-                        if (previewSection) {
-                            previewSection.innerHTML = '<div class="alert alert-warning">Preview functionality not loaded. Please refresh the page.</div>';
-                        }
+                    // Render a summary of all sections
+                    const previewSection = document.querySelector('section[data-step-content="previewApplication"]');
+                    if (previewSection) {
+                        const sectionOrder = [
+                            { key: 'personalDetails', label: 'Personal Details' },
+                            { key: 'educationTraining', label: 'Education and Training' },
+                            { key: 'professionalMembership', label: 'Professional Membership' },
+                            { key: 'employmentHistory', label: 'Employment History' },
+                            { key: 'documents', label: 'Documents' },
+                            { key: 'referee', label: 'Referee' },
+                            { key: 'dependants', label: 'Dependants' }
+                        ];
+                        let html = '<h4 class="mb-4"><i class="fa fa-id-card me-2"></i>Application Summary</h4>';
+                        sectionOrder.forEach(sec => {
+                            const sectionElem = document.querySelector(`section[data-step-content="${sec.key}"]`);
+                            if (sectionElem) {
+                                // Clone the table from each section (if present)
+                                const table = sectionElem.querySelector('table');
+                                if (table) {
+                                    html += `<div class='mb-4'><h5>${sec.label}</h5>${table.outerHTML}</div>`;
+                                } else {
+                                    html += `<div class='mb-4'><h5>${sec.label}</h5><div class='text-muted'>No data available.</div></div>`;
+                                }
+                            } else {
+                                html += `<div class='mb-4'><h5>${sec.label}</h5><div class='text-muted'>No data available.</div></div>`;
+                            }
+                        });
+                        previewSection.innerHTML = html;
                     }
                     return; // Skip API fetch for previewApplication
                 }

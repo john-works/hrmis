@@ -39,7 +39,39 @@
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                         <li class="nav-item" id="homeNavItem"><a class="nav-link" href="#" onclick="showHomePage()">Home</a></li>
                         <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('selectJob')">Jobs</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('personalDetails')">My Profile</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#" onclick="showProfileSection()">My Profile</a></li>
+                        </script>
+                        <script>
+                        // Show Personal Details and always fetch user data
+                        function showProfileSection() {
+                            showSection('personalDetails');
+                            // Wait for the section to be visible, then fetch and populate
+                            setTimeout(function() {
+                                // Use the same API logic as in your main JS
+                                const apiUrl = 'http://192.168.32.215:8041/api/v1';
+                                let user = null;
+                                try { user = JSON.parse(localStorage.getItem('user')); } catch {}
+                                const userId = user && user.id ? user.id : 1;
+                                const url = `${apiUrl}/applicants/${userId}`;
+                                const token = localStorage.getItem('token');
+                                fetch(url, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data && typeof data === 'object') {
+                                            document.getElementById('firstName').value = data.first_name || '';
+                                            document.getElementById('middleName').value = data.middle_name || '';
+                                            document.getElementById('lastName').value = data.last_name || '';
+                                            document.getElementById('emailDetail').value = data.email || '';
+                                            document.getElementById('contact').value = data.contact || '';
+                                            document.getElementById('ninDetail').value = data.nin || '';
+                                            document.getElementById('genderDetail').value = data.gender || '';
+                                            document.getElementById('dobDetail').value = data.date_of_birth || '';
+                                            document.getElementById('statusDetail').value = data.marital_status || '';
+                                        }
+                                    });
+                            }, 300);
+                        }
+                        </script>
                         <li class="nav-link" href="#" onclick="showSection('myApplication')">My Applications</a></li>
                         <!-- <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('documents')">Documents</a></li> -->
                     </div>
