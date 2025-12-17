@@ -22,25 +22,24 @@ window.API = {
 	registerForm: `${apiUrl}/register`,
 	// === CRUD BASE ENDPOINTS (NO ID INSIDE) ===
 	// These are not used directly for GET, only for POST/PUT/DELETE
-	educationTraining: (applicantId) => `${apiUrl}/applicants/${applicantId}/educations`,
-	professionalMembership: (applicantId) => `${apiUrl}/applicants/${applicantId}/memberships`,
-	employmentHistory: (applicantId) => `${apiUrl}/applicants/${applicantId}/employments`,
-	documents: (applicantId) => `${apiUrl}/applicants/${applicantId}/documents`,
-	referee: (applicantId) => `${apiUrl}/applicants/${applicantId}/referees`,
-	dependants: (applicantId) => `${apiUrl}/applicants/${applicantId}/dependants`,
-	myApplications: (applicantId) => `${apiUrl}/applicants/${applicantId}/applications`,
+	educationTraining: (id) => `${apiUrl}/educations/${id}`,
+	professionalMembership:  (id) => `${apiUrl}/memberships/${id}`,
+	documents:  (id) => `${apiUrl}/documents/${id}`,
+	referee: (id) => `${apiUrl}/referees/${id}`,
+	dependants: (id) => `${apiUrl}/dependants/${id}`,
+	myApplications: (id) => `${apiUrl}/applications/${id}`,
 
 	// === ENDPOINTS FOR FRONTEND RETRIEVAL (DYNAMIC) ===
 	getApplicant: (id) => `${apiUrl}/applicants/${id}`,
 	personalDetails: (id) => `${apiUrl}/applicants/${id}`,
 	getApplication: (id) => `${apiUrl}/applications/${id}`,
-	getReferees: (id) => `${apiUrl}/applicants/${id}/referees`,
-	getDependants: (id) => `${apiUrl}/applicants/${id}/dependants`,
+	getReferees: (id) => `${apiUrl}/referees/${id}`,
+	getDependants: (id) => `${apiUrl}/dependants/${id}`,
 	getDocuments: (id) => `${apiUrl}/applicants/${id}/documents`,
 	getEmploymentHistory: (id) => `${apiUrl}/applicants/${id}/employments`,
 	getEducationTraining: (id) => `${apiUrl}/applicants/${id}/educations`,
 	getProfessionalMemberships: (id) => `${apiUrl}/applicants/${id}/memberships`,
-	getMyApplications: (id) => `${apiUrl}/applicants/${id}/applications`,
+	getMyApplications: (id) => `${apiUrl}/applicants/applications/${id}`,
 
 	// === JOB/APPLICATION RELATED ===
 	selectJob: `${apiUrl}/positions`,
