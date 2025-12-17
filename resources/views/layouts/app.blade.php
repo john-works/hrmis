@@ -40,14 +40,24 @@
                         <li class="nav-item" id="homeNavItem"><a class="nav-link" href="#" onclick="showHomePage()">Home</a></li>
                         <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('selectJob')">Jobs</a></li>
                         <li class="nav-item"><a class="nav-link" href="#" onclick="showProfileSection()">My Profile</a></li>
-                        </script>
+
+                        
                         <script>
-                        // Show Personal Details and always fetch user data
+                            // Show Personal Details and ensure only personal details form is shown
                         function showProfileSection() {
-                            showSection('personalDetails');
-                            // Wait for the section to be visible, then fetch and populate
+                            // Hide all sections
+                            var allSections = document.querySelectorAll('[data-step-content]');
+                            allSections.forEach(function(sec) {
+                                sec.classList.add('d-none');
+                            });
+                            // Show only personal details section
+                            var personalSection = document.querySelector('section[data-step-content="personalDetails"]');
+                            if (personalSection) personalSection.classList.remove('d-none');
+                            // Hide preview/summary content if present
+                            var previewSection = document.querySelector('section[data-step-content="previewApplication"]');
+                            if (previewSection) previewSection.innerHTML = '';
+                            // Fetch and populate personal details
                             setTimeout(function() {
-                                // Use the same API logic as in your main JS
                                 const apiUrl = 'http://192.168.32.215:8041/api/v1';
                                 let user = null;
                                 try { user = JSON.parse(localStorage.getItem('user')); } catch {}

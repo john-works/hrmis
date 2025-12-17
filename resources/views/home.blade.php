@@ -1,10 +1,20 @@
     <script>
     // Show a specific section from anywhere (e.g., from My Profile in navbar)
     function showSection(sectionName) {
+        // Hide all sections first
+        var allSections = document.querySelectorAll('[data-step-content]');
+        allSections.forEach(function(sec) {
+            sec.classList.add('d-none');
+        });
         // Hide home page, show application dashboard
         document.getElementById('homePage').style.display = 'none';
         document.getElementById('applicationDashboard').style.display = 'block';
-        // Use the existing loadSection to show the right section
+        // Show the selected section
+        var targetSection = document.querySelector(`[data-step-content="${sectionName}"]`);
+        if (targetSection) {
+            targetSection.classList.remove('d-none');
+        }
+        // Use the existing loadSection to trigger any additional logic (data fetch, etc.)
         if (typeof loadSection === 'function') {
             loadSection(sectionName);
         }
