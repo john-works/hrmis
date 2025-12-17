@@ -35,10 +35,10 @@ window.API = {
 	getApplication: (id) => `${apiUrl}/applications/${id}`,
 	getReferees: (id) => `${apiUrl}/referees/${id}`,
 	getDependants: (id) => `${apiUrl}/dependants/${id}`,
-	getDocuments: (id) => `${apiUrl}/applicants/${id}/documents`,
-	getEmploymentHistory: (id) => `${apiUrl}/applicants/${id}/employments`,
-	getEducationTraining: (id) => `${apiUrl}/applicants/${id}/educations`,
-	getProfessionalMemberships: (id) => `${apiUrl}/applicants/${id}/memberships`,
+	getDocuments: (id) => `${apiUrl}/documents/${id}`,
+	getEmploymentHistory: (id) => `${apiUrl}/employments/${id}`,
+	getEducationTraining: (id) => `${apiUrl}/educations/${id}`,
+	getProfessionalMemberships: (id) => `${apiUrl}/memberships/${id}`,
 	getMyApplications: (id) => `${apiUrl}/applicants/applications/${id}`,
 
 	// === JOB/APPLICATION RELATED ===
@@ -2683,13 +2683,31 @@ async function openDocumentModal(editItem = null) {
 			}
 		}
 
-		// Attach button event listeners after DOM is loaded
-		document.getElementById('btnAddEducation')?.addEventListener('click', () => openEducationModal());
-		document.getElementById('btnAddMembership')?.addEventListener('click', () => openMembershipModal());
-		document.getElementById('btnAddEmployment')?.addEventListener('click', () => openEmploymentModal());
-		document.getElementById('btnAddDocument')?.addEventListener('click', () => openDocumentModal());
-		document.getElementById('btnAddReferee')?.addEventListener('click', () => openRefereeModal());
-		document.getElementById('btnAddDependant')?.addEventListener('click', () => openDependantModal());
+		// Attach Add button event listeners after all modal functions are defined
+		const btnAddEducation = document.getElementById('btnAddEducation');
+		if (btnAddEducation && typeof window.openEducationModal === 'function') {
+			btnAddEducation.onclick = () => window.openEducationModal();
+		}
+		const btnAddMembership = document.getElementById('btnAddMembership');
+		if (btnAddMembership && typeof window.openMembershipModal === 'function') {
+			btnAddMembership.onclick = () => window.openMembershipModal();
+		}
+		const btnAddEmployment = document.getElementById('btnAddEmployment');
+		if (btnAddEmployment && typeof window.openEmploymentModal === 'function') {
+			btnAddEmployment.onclick = () => window.openEmploymentModal();
+		}
+		const btnAddDocument = document.getElementById('btnAddDocument');
+		if (btnAddDocument && typeof window.openDocumentModal === 'function') {
+			btnAddDocument.onclick = () => window.openDocumentModal();
+		}
+		const btnAddReferee = document.getElementById('btnAddReferee');
+		if (btnAddReferee && typeof window.openRefereeModal === 'function') {
+			btnAddReferee.onclick = () => window.openRefereeModal();
+		}
+		const btnAddDependant = document.getElementById('btnAddDependant');
+		if (btnAddDependant && typeof window.openDependantModal === 'function') {
+			btnAddDependant.onclick = () => window.openDependantModal();
+		}
 	}
 	document.addEventListener('DOMContentLoaded', init);
 

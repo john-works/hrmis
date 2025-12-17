@@ -1,3 +1,4 @@
+
  @extends('layouts.app')
 
 @section('content')
@@ -102,7 +103,7 @@
             <!-- Main Content Area -->
             <main class="col-md-9 main-panel" id="mainPanel">
                 <!-- Personal Details Section -->
-                <section data-step-content="personalDetails" class="d-none">
+                <section data-step-content="personalDetails">
                     <h4 class="mb-4"><i class="fas fa-user me-2"></i>Personal Details</h4>
                     <form id="formPersonalDetails">
                         <div class="row">
@@ -166,7 +167,7 @@
                 </section>
 
                 <!-- Education and Training Section -->
-                <section data-step-content="educationTraining" class="d-none">
+                <section data-step-content="educationTraining">
                     <h4 class="mb-4"><i class="fas fa-graduation-cap me-2"></i>Education and Training</h4>
                     <button class="btn btn-primary mb-3" id="btnAddEducation">
                         <i class="fas fa-plus me-2"></i>Add Education
@@ -185,13 +186,237 @@
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody></tbody>
+                            <tbody id="documentsTableBody"></tbody>
+    <script>
+// Generic fetch and render for all main tables
+document.addEventListener('DOMContentLoaded', function() {
+    const apiUrl = 'http://192.168.32.215:8041/api/v1';
+    const tableConfigs = [
+        {
+            section: 'educationTraining',
+            tableBody: 'educationTable',
+            endpoint: userId => `${apiUrl}/educations/${userId}`,
+            columns: ['start_year', 'end_year', 'qualification', 'course', 'institution', 'degree_class', 'ongoing'],
+            noDataMsg: 'No education records found.'
+        },
+        {
+            section: 'professionalMembership',
+            tableBody: 'membershipTable',
+            endpoint: userId => `${apiUrl}/memberships/${userId}`,
+            columns: ['enrollment_year', 'expiry_year', 'membership_number', 'type', 'institute'],
+            noDataMsg: 'No membership records found.'
+        },
+        {
+            section: 'employmentHistory',
+            tableBody: 'employmentTable',
+            endpoint: userId => `${apiUrl}/employments/${userId}`,
+            columns: ['start_date', 'end_date', 'employer', 'position', 'duties', 'is_current'],
+            noDataMsg: 'No employment records found.'
+        },
+        {
+            section: 'documents',
+            tableBody: 'documentsTable',
+            endpoint: userId => `${apiUrl}/documents/${userId}`,
+            columns: ['document_type', 'title'],
+            noDataMsg: 'No documents found.'
+        },
+        {
+            section: 'referee',
+            tableBody: 'refereeTable',
+            endpoint: userId => `${apiUrl}/referees/${userId}`,
+            columns: ['name', 'relationship', 'contact', 'email', 'address', 'position'],
+            noDataMsg: 'No referees found.'
+        },
+        {
+            section: 'dependants',
+            tableBody: 'dependantsTable',
+            endpoint: userId => `${apiUrl}/dependants/${userId}`,
+            columns: ['name', 'relationship', 'birth_date'],
+            noDataMsg: 'No dependants found.'
+        },
+        {
+            section: 'myApplication',
+            tableBody: 'myApplicationsTable',
+            endpoint: userId => `${apiUrl}/applications/${userId}`,
+            columns: ['interview_id', 'position', 'department', 'application_date', 'status'],
+            noDataMsg: 'No applications found.'
+        },
+        {
+            section: 'selectJob',
+            tableBody: 'jobTable',
+            endpoint: () => `${apiUrl}/positions`,
+            columns: ['name', 'location', 'deadline'],
+            noDataMsg: 'No jobs listed currently.'
+        }
+    ];
+
+    function showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toastContainer');
+        const toastId = 'toast-' + Date.now();
+        const toastHTML = `
+            <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header ${type}">
+                    <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">${message}</div>
+            </div>
+        `;
+        toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+        const toastEl = document.getElementById(toastId);
+        const bsToast = new bootstrap.Toast(toastEl, { autohide: true, delay: 4000 });
+        bsToast.show();
+        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    }
+
+    async function fetchAndRender(section) {
+        const config = tableConfigs.find(c => c.section === section);
+        if (!config) return;
+        const table = document.getElementById(config.tableBody);
+        if (!table) return;
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+        tbody.innerHTML = `<tr><td colspan="${config.columns.length + 1}" class="text-center text-muted">Loading...</td></tr>`;
+        let user = null;
+        try { user = JSON.parse(localStorage.getItem('user')); } catch {}
+        const userId = user && user.id ? user.id : 1;
+        let url = typeof config.endpoint === 'function' ? config.endpoint(userId) : config.endpoint;
+        let token = localStorage.getItem('token');
+        try {
+            const response = await fetch(url, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
+            let data = await response.json();
+            data = data && data.data ? data.data : (Array.isArray(data) ? data : []);
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${config.columns.length + 1}" class="text-center text-warning">${config.noDataMsg}</td></tr>`;
+                showToast(config.noDataMsg, 'warning');
+                return;
+            }
+            tbody.innerHTML = data.map(item => {
+                let tds = config.columns.map(col => {
+                    let val = item[col];
+                    if (col === 'ongoing' || col === 'is_current') return `<td>${val ? 'Current' : 'Past'}</td>`;
+                    return `<td>${val !== undefined && val !== null ? val : ''}</td>`;
+                }).join('');
+                return `<tr>${tds}<td><button class='btn btn-sm btn-primary me-2'>Edit</button><button class='btn btn-sm btn-danger'>Delete</button></td></tr>`;
+            }).join('');
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="${config.columns.length + 1}" class="text-center text-danger">Failed to load data.</td></tr>`;
+            showToast('Failed to load data from server.', 'error');
+        }
+    }
+
+    // Listen for section show (when user navigates)
+    const sidebarNav = document.getElementById('sidebarNav');
+    if (sidebarNav) {
+        sidebarNav.addEventListener('click', function(e) {
+            const a = e.target.closest('a[data-step]');
+            if (a) {
+                const section = a.getAttribute('data-step');
+                setTimeout(() => fetchAndRender(section), 200);
+            }
+        });
+    }
+    // Also fetch on page load for visible sections
+    tableConfigs.forEach(cfg => {
+        const sectionEl = document.querySelector(`section[data-step-content="${cfg.section}"]`);
+        if (sectionEl && !sectionEl.classList.contains('d-none')) {
+            fetchAndRender(cfg.section);
+        }
+    });
+});
+</script>                    
+                        
+                        
+                        
+                        
+                        <script>
+                        // Fetch and render documents from API when the documents section is shown
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const documentsSection = document.querySelector('section[data-step-content="documents"]');
+                            const documentsTableBody = document.getElementById('documentsTableBody');
+                            const btnAddDocument = document.getElementById('btnAddDocument');
+                            // Helper: show toast
+                            function showToast(message, type = 'info') {
+                                const toastContainer = document.getElementById('toastContainer');
+                                const toastId = 'toast-' + Date.now();
+                                const toastHTML = `
+                                    <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                                        <div class="toast-header ${type}">
+                                            <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+                                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                        </div>
+                                        <div class="toast-body">${message}</div>
+                                    </div>
+                                `;
+                                toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+                                const toastEl = document.getElementById(toastId);
+                                const bsToast = new bootstrap.Toast(toastEl, { autohide: true, delay: 4000 });
+                                bsToast.show();
+                                toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+                            }
+
+                            async function fetchDocuments() {
+                                if (!documentsTableBody) return;
+                                documentsTableBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Loading...</td></tr>';
+                                try {
+                                    // Use your API base URL and current user ID
+                                    const apiUrl = 'http://192.168.32.215:8041/api/v1';
+                                    let user = null;
+                                    try {
+                                        user = JSON.parse(localStorage.getItem('user'));
+                                    } catch {}
+                                    const userId = user && user.id ? user.id : 1;
+                                    const url = `${apiUrl}/documents/${userId}`;
+                                    const token = localStorage.getItem('token');
+                                    const response = await fetch(url, {
+                                        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                                    });
+                                    let data = await response.json();
+                                    // Support both {data: [...]} and [...] formats
+                                    data = data && data.data ? data.data : (Array.isArray(data) ? data : []);
+                                    if (!data || data.length === 0) {
+                                        documentsTableBody.innerHTML = '<tr><td colspan="3" class="text-center text-warning">No documents found. Click "Add Document" to upload your first document.</td></tr>';
+                                        showToast('No documents found. Please add a document.', 'warning');
+                                        return;
+                                    }
+                                    documentsTableBody.innerHTML = data.map(doc => `
+                                        <tr>
+                                            <td>${doc.document_type || ''}</td>
+                                            <td>${doc.title || ''}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary me-2">Edit</button>
+                                                <button class="btn btn-sm btn-danger">Delete</button>
+                                            </td>
+                                        </tr>
+                                    `).join('');
+                                } catch (err) {
+                                    documentsTableBody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Failed to load documents.</td></tr>';
+                                    showToast('Failed to load documents from server.', 'error');
+                                }
+                            }
+
+                            // Listen for section show (when user navigates to documents)
+                            const sidebarNav = document.getElementById('sidebarNav');
+                            if (sidebarNav) {
+                                sidebarNav.addEventListener('click', function(e) {
+                                    const a = e.target.closest('a[data-step]');
+                                    if (a && a.getAttribute('data-step') === 'documents') {
+                                        setTimeout(fetchDocuments, 200); // Delay to allow section to show
+                                    }
+                                });
+                            }
+                            // Also fetch on page load if already visible
+                            if (documentsSection && !documentsSection.classList.contains('d-none')) {
+                                fetchDocuments();
+                            }
+                        });
+                        </script>
                         </table>
                     </div>
                 </section>
 
                 <!-- Professional Membership Section -->
-                <section data-step-content="professionalMembership" class="d-none">
+                <section data-step-content="professionalMembership">
                     <h4 class="mb-4"><i class="fas fa-users me-2"></i>Professional Membership</h4>
                     <button class="btn btn-primary mb-3" id="btnAddMembership">
                         <i class="fas fa-plus me-2"></i>Add Membership
@@ -214,7 +439,7 @@
                 </section>
 
                 <!-- Employment History Section -->
-                <section data-step-content="employmentHistory" class="d-none">
+                <section data-step-content="employmentHistory">
                     <h4 class="mb-4"><i class="fas fa-briefcase me-2"></i>Employment History</h4>
                     <button class="btn btn-primary mb-3" id="btnAddEmployment">
                         <i class="fas fa-plus me-2"></i>Add Employment
@@ -238,7 +463,7 @@
                 </section>
 
                 <!-- Documents Section -->
-                <section data-step-content="documents" class="d-none">
+                <section data-step-content="documents">
                     <h4 class="mb-4"><i class="fas fa-paperclip me-2"></i>Documents</h4>
                     <button class="btn btn-primary mb-3" id="btnAddDocument">
                         <i class="fas fa-plus me-2"></i>Add Document
@@ -258,7 +483,7 @@
                 </section>
 
                 <!-- Referee Section -->
-                <section data-step-content="referee" class="d-none">
+                <section data-step-content="referee">
                     <h4 class="mb-4"><i class="fas fa-eye me-2"></i>Referee</h4>
                     <button class="btn btn-primary mb-3" id="btnAddReferee">
                         <i class="fas fa-plus me-2"></i>Add Referee
@@ -282,7 +507,7 @@
                 </section>
 
                 <!-- Dependants Section -->
-                <section data-step-content="dependants" class="d-none">
+                <section data-step-content="dependants">
                     <h4 class="mb-4"><i class="fas fa-users me-2"></i>Dependants</h4>
                     <button class="btn btn-primary mb-3" id="btnAddDependant">
                         <i class="fas fa-plus me-2"></i>Add Dependant
@@ -303,12 +528,12 @@
                 </section>
 
                 <!-- Preview Application Section -->
-                <section data-step-content="previewApplication" class="d-none">
+                <section data-step-content="previewApplication">
                     <!-- Content will be loaded here by loadPreview() -->
                 </section>
 
                 <!-- Select Job Section -->
-                <section data-step-content="selectJob" class="d-none">
+                <section data-step-content="selectJob">
                     <h4 class="mb-4"><i class="fas fa-tasks me-2"></i>Select a Job</h4>
                     <div class="table-responsive">
                         <table class="table table-striped" id="jobTable">
@@ -326,7 +551,7 @@
                 </section>
 
                 <!-- My Applications Section -->
-                <section data-step-content="myApplication" class="d-none">
+                <section data-step-content="myApplication">
                     <h4 class="mb-4"><i class="fas fa-list me-2"></i>My Applications</h4>
                     <div class="table-responsive">
                         <table class="table table-striped" id="myApplicationsTable">

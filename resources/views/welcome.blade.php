@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         } catch (error) {
             console.error('Error loading jobs:', error);
             if (loadingSpinner) loadingSpinner.style.display = 'none';
-            jobsListContainer.innerHTML = '<div class="col-12 text-center"><p class="text-danger">Failed to load job openings. Please try again later.</p></div>';
+            jobsListContainer.innerHTML = '<div class="col-12 text-center"><p class="text-danger">No job available at a momment.</p></div>';
             showToast('Failed to load job openings from server.', 'error');
         }
     }
