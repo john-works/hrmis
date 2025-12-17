@@ -1,288 +1,60 @@
-(() => {
-	/* ========== Configuration ========== */
-	// Set your API base URL here - change this to point to your backend
-	let apiUrl = 'http://192.168.32.215:8041/api/v1';
-	let currentUser; // Will be set after getUser() is defined
+/* ========== Configuration ========== */
+// Set your API base URL here - change this to point to your backend
+function getApiUrl() {
+    const origin = window.location.origin;
 
-	/* ========== Document Manager Module ========== */
-	const DocumentManager = {
-		/**
-		 * Get the API base URL based on current location
-		 * For applicant-side (port 5500, 3000, etc.), use localhost:8041
-		 * For HR side (port 8041), use current origin
-		 */
-		getApiBaseUrl() {
-			const origin = window.location.origin;
-			
-			// If running on a dev server (not on port 8041), point to the backend
-			if (!origin.includes(':8041')) {
-				// Applicant-side: running on dev server, point to Laravel backend
-				return 'http://localhost:8041';
-			}
-			
-			// HR-side: already on the correct server
-			return origin;
-		},
+    // If running on a dev server (not on port 8041), point to the backend
+    if (!origin.includes(':8041')) {
+        // Applicant-side: running on dev server, point to Laravel backend
+        return 'http://192.168.32.215:8041/api/v1';
+    }
+    // HR-side: already on the correct server
+    return origin + '/api/v1';
+}
 
-		/**
-		 * Fetch document types from API
-		 * @returns {Promise<Object>} Document types grouped by section
-		 */
-		async fetchDocumentTypes() {
-			try {
-				const baseUrl = this.getApiBaseUrl();
-				const response = await fetch(`${baseUrl}/api/v1/document-types`);
-				
-				if (!response.ok) {
-					console.error(`API returned status ${response.status}: ${response.statusText}`);
-					return null;
-				}
-				
-				const result = await response.json();
-				
-				if (result.status === 'success') {
-					return result.data;
-				} else {
-					console.error('Error fetching document types:', result.message);
-					return null;
-				}
-			} catch (error) {
-				console.error('Failed to fetch document types:', error);
-				return null;
-			}
-		},
+let apiUrl = getApiUrl();
+let currentUser; // Will be set after getUser() is defined
 
-		/**
-		 * Fetch document types for a specific section
-		 * @param {string} section - The recruitment section name
-		 * @returns {Promise<Array>} Array of document types for the section
-		 */
-		async fetchDocumentTypesBySection(section) {
-			try {
-				const baseUrl = this.getApiBaseUrl();
-				const response = await fetch(`${baseUrl}/api/v1/document-types/${encodeURIComponent(section)}`);
-				const result = await response.json();
-				
-				if (result.status === 'success') {
-					return result.data;
-				} else {
-					console.error('Error fetching document types for section:', result.message);
-					return [];
-				}
-			} catch (error) {
-				console.error('Failed to fetch document types for section:', error);
-				return [];
-			}
-		},
+// API endpoints - dynamically built with the apiUrl
+// ...existing code...
 
-		/**
-		 * Populate a dropdown with document types
-		 * @param {string|HTMLElement} selector - CSS selector or HTML element for the dropdown
-		 * @param {Array} documentTypes - Array of document type objects
-		 * @param {string} selectedValue - Optional: value to select by default
-		 */
-		populateDropdown(selector, documentTypes, selectedValue = null) {
-			const element = typeof selector === 'string' 
-				? document.querySelector(selector) 
-				: selector;
+window.API = {
+	login: `${apiUrl}/login`,
+	registerForm: `${apiUrl}/register`,
+	// === CRUD BASE ENDPOINTS (NO ID INSIDE) ===
+	// These are not used directly for GET, only for POST/PUT/DELETE
+	educationTraining: (applicantId) => `${apiUrl}/applicants/${applicantId}/educations`,
+	professionalMembership: (applicantId) => `${apiUrl}/applicants/${applicantId}/memberships`,
+	employmentHistory: (applicantId) => `${apiUrl}/applicants/${applicantId}/employments`,
+	documents: (applicantId) => `${apiUrl}/applicants/${applicantId}/documents`,
+	referee: (applicantId) => `${apiUrl}/applicants/${applicantId}/referees`,
+	dependants: (applicantId) => `${apiUrl}/applicants/${applicantId}/dependants`,
+	myApplications: (applicantId) => `${apiUrl}/applicants/${applicantId}/applications`,
 
-			if (!element) {
-				console.warn('Dropdown element not found:', selector);
-				return;
-			}
+	// === ENDPOINTS FOR FRONTEND RETRIEVAL (DYNAMIC) ===
+	getApplicant: (id) => `${apiUrl}/applicants/${id}`,
+	personalDetails: (id) => `${apiUrl}/applicants/${id}`,
+	getApplication: (id) => `${apiUrl}/applications/${id}`,
+	getReferees: (id) => `${apiUrl}/applicants/${id}/referees`,
+	getDependants: (id) => `${apiUrl}/applicants/${id}/dependants`,
+	getDocuments: (id) => `${apiUrl}/applicants/${id}/documents`,
+	getEmploymentHistory: (id) => `${apiUrl}/applicants/${id}/employments`,
+	getEducationTraining: (id) => `${apiUrl}/applicants/${id}/educations`,
+	getProfessionalMemberships: (id) => `${apiUrl}/applicants/${id}/memberships`,
+	getMyApplications: (id) => `${apiUrl}/applicants/${id}/applications`,
 
-			// Clear existing options except the first placeholder
-			const placeholder = element.options[0];
-			element.innerHTML = '';
-			if (placeholder) {
-				element.appendChild(placeholder.cloneNode(true));
-			}
+	// === JOB/APPLICATION RELATED ===
+	selectJob: `${apiUrl}/positions`,
+	getActivepositions: `${apiUrl}/positions`,
+	postApplication: `${apiUrl}/applications`,
+	postApplicationSection: `${apiUrl}/application_section`,
+	retrieveApplication: `${apiUrl}/retrieve_application`,
+	validateCode: `${apiUrl}/validate_code`,
+	getScreeningQuestions: (positionId) => `${apiUrl}/positions/${positionId}/questions`,
+	submitScreeningAnswers: (applicationId) => `${apiUrl}/screening/${applicationId}/answers`,
+};
 
-			// Add document type options
-			documentTypes.forEach(docType => {
-				const option = document.createElement('option');
-				option.value = docType.id;
-				option.textContent = docType.name;
-				
-				if (selectedValue && docType.id == selectedValue) {
-					option.selected = true;
-				}
-				
-				element.appendChild(option);
-			});
-
-			// Trigger change event if Select2 or similar is initialized
-			if (typeof jQuery !== 'undefined' && element.classList.contains('select2-hidden-accessible')) {
-				jQuery(element).trigger('change');
-			}
-		},
-
-		/**
-		 * Populate a dropdown with document types from a specific section
-		 * @param {string|HTMLElement} selector - CSS selector or HTML element for the dropdown
-		 * @param {string} section - The recruitment section
-		 * @param {string} selectedValue - Optional: value to select by default
-		 */
-		async populateDropdownBySection(selector, section, selectedValue = null) {
-			const documentTypes = await this.fetchDocumentTypesBySection(section);
-			this.populateDropdown(selector, documentTypes, selectedValue);
-		},
-
-		/**
-		 * Initialize all document type dropdowns on the page
-		 * Looks for dropdowns with data-section attribute
-		 */
-		async initializeAllDropdowns() {
-			const dropdowns = document.querySelectorAll('[data-section]');
-			
-			for (const dropdown of dropdowns) {
-				const section = dropdown.getAttribute('data-section');
-				const selectedValue = dropdown.getAttribute('data-selected');
-				await this.populateDropdownBySection(dropdown, section, selectedValue);
-			}
-		},
-
-		/**
-		 * Initialize a single dropdown and populate it with document types
-		 * @param {string|HTMLElement} selector - CSS selector or HTML element for the dropdown
-		 */
-		async initializeDropdown(selector) {
-			const element = typeof selector === 'string' 
-				? document.querySelector(selector) 
-				: selector;
-
-			if (!element) {
-				console.warn('Dropdown element not found:', selector);
-				return;
-			}
-
-			const section = element.getAttribute('data-section');
-			const selectedValue = element.getAttribute('data-selected');
-
-			if (section) {
-				await this.populateDropdownBySection(selector, section, selectedValue);
-			} else {
-				// If no section specified, fetch all and populate
-				const documentTypes = await this.fetchDocumentTypes();
-				if (documentTypes) {
-					// Flatten the grouped data
-					const flatDocTypes = Object.values(documentTypes).flat();
-					this.populateDropdown(selector, flatDocTypes, selectedValue);
-				}
-			}
-		},
-
-		/**
-		 * Create and display a document type section selector
-		 * @param {string|HTMLElement} container - Container element for the selector
-		 * @param {Function} onSectionSelect - Callback function when section is selected
-		 */
-		async createSectionSelector(container, onSectionSelect) {
-			const containerEl = typeof container === 'string'
-				? document.querySelector(container)
-				: container;
-
-			if (!containerEl) {
-				console.warn('Container element not found:', container);
-				return;
-			}
-
-			const documentTypes = await this.fetchDocumentTypes();
-			
-			if (!documentTypes) {
-				containerEl.innerHTML = '<p class="text-danger">Failed to load document sections</p>';
-				return;
-			}
-
-			const sections = Object.keys(documentTypes).sort();
-			
-			let html = '<div class="mb-3">';
-			html += '<label class="form-label">Document Section</label>';
-			html += '<select class="form-select" id="docSectionSelector">';
-			html += '<option value="">-- Select a Section --</option>';
-			
-			sections.forEach(section => {
-				html += `<option value="${section}">${section}</option>`;
-			});
-			
-			html += '</select></div>';
-			
-			containerEl.innerHTML = html;
-			
-			const selector = containerEl.querySelector('#docSectionSelector');
-			selector.addEventListener('change', (e) => {
-				if (onSectionSelect && typeof onSectionSelect === 'function') {
-					onSectionSelect(e.target.value);
-				}
-			});
-		},
-
-		/**
-		 * Open document viewer modal with PDF viewer
-		 * @param {string} filePath - Path to document file
-		 * @param {string} fileName - Name of document
-		 */
-		openDocumentViewer(filePath, fileName) {
-			let modal = document.getElementById('documentViewerModal');
-			
-			// Create modal if it doesn't exist
-			if (!modal) {
-				const modalHTML = `
-					<div class="modal fade" id="documentViewerModal" tabindex="-1" aria-labelledby="documentViewerModalLabel" aria-hidden="true">
-						<div class="modal-dialog modal-dialog-centered modal-xl">
-							<div class="modal-content">
-								<div class="modal-header">
-									<h5 class="modal-title" id="documentViewerModalLabel">Document Viewer</h5>
-									<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-								</div>
-								<div class="modal-body" id="documentViewerBody" style="min-height: 500px; display: flex; align-items: center; justify-content: center;">
-									<div class="spinner-border text-primary" role="status">
-										<span class="visually-hidden">Loading...</span>
-									</div>
-								</div>
-								<div class="modal-footer">
-									<a id="documentDownloadBtn" href="#" class="btn btn-primary" download target="_blank">
-										<i class="fas fa-download"></i> Download
-									</a>
-									<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-								</div>
-							</div>
-						</div>
-					</div>
-				`;
-				
-				document.body.insertAdjacentHTML('beforeend', modalHTML);
-				modal = document.getElementById('documentViewerModal');
-			}
-			
-			// Update title
-			const titleEl = modal.querySelector('#documentViewerModalLabel');
-			titleEl.textContent = fileName || 'Document Viewer';
-			
-			const bodyEl = modal.querySelector('#documentViewerBody');
-			const downloadBtn = modal.querySelector('#documentDownloadBtn');
-			
-			const baseUrl = this.getApiBaseUrl();
-			const fullPath = filePath.startsWith('http') ? filePath : `${baseUrl}/storage/${filePath}`;
-			
-			// Set download button
-			downloadBtn.href = fullPath;
-			downloadBtn.download = fileName || 'document.pdf';
-			
-			// Display PDF with embedded viewer
-			bodyEl.innerHTML = `
-				<iframe 
-					src="${fullPath}#toolbar=1&navpanes=0&scrollbar=1" 
-					style="width: 100%; height: 600px; border: none; border-radius: 4px;"
-					title="PDF Viewer">
-				</iframe>
-			`;
-			
-			// Show modal
-			const bsModal = new bootstrap.Modal(modal);
-			bsModal.show();
-		},
-	};
+	// ...existing code...
 
 	/* ----- Elements ----- */
 	const authArea = document.getElementById('authArea');
@@ -310,7 +82,7 @@
 
 	// Bootstrap modal for CRUD
 	const crudModalEl = document.getElementById('crudModal');
-	const crudModal = new bootstrap.Modal(crudModalEl);
+	const crudModal = crudModalEl ? new bootstrap.Modal(crudModalEl) : null;
 	const crudForm = document.getElementById('crudForm');
 	const crudModalLabel = document.getElementById('crudModalLabel');
 	const crudModalBody = document.getElementById('crudModalBody');
@@ -319,11 +91,11 @@
 
 	// Bootstrap modal for Job Details
 	const jobDetailsModalEl = document.getElementById('jobDetailsModal');
-	const jobDetailsModal = new bootstrap.Modal(jobDetailsModalEl);
+	const jobDetailsModal = jobDetailsModalEl ? new bootstrap.Modal(jobDetailsModalEl) : null;
 
 	// Bootstrap modal for Login
 	const loginModalEl = document.getElementById('loginModal');
-	const loginModal = new bootstrap.Modal(loginModalEl);
+	const loginModal = loginModalEl ? new bootstrap.Modal(loginModalEl) : null;
 
 	// Sidebar nav
 	const sidebarNav = document.getElementById('sidebarNav');
@@ -839,7 +611,8 @@ function showHomePage() {
 
 
 	// Resend code functionality
-	resendLink.addEventListener('click', async () => {
+	if (resendLink) {
+		resendLink.addEventListener('click', async () => {
 		if (resendLink.classList.contains('disabled')) return;
 
 		const pendingUserStr = localStorage.getItem('pendingUser');
@@ -919,42 +692,6 @@ function showHomePage() {
 	}
 
 	/* =============== Application Logic =============== */
-	// API endpoints - dynamically built with the apiUrl
-const API = {
-	login: `${apiUrl}/login`,
-	registerForm: `${apiUrl}/register`,
-	// === CRUD BASE ENDPOINTS (NO ID INSIDE) ===
-	educationTraining: `${apiUrl}/educations`,
-	professionalMembership: `${apiUrl}/memberships`,
-	employmentHistory: `${apiUrl}/employments`,
-	documents: `${apiUrl}/documents`,
-	referee: `${apiUrl}/referees`,
-	dependants: `${apiUrl}/dependants`,
-	myApplications: `${apiUrl}/myapplication`,
-
-	// === ENDPOINTS FOR FRONTEND RETRIEVAL (DYNAMIC) ===
-	getApplicant: (id) => `${apiUrl}/applicants/${id}`,
-	personalDetails: (id) => `${apiUrl}/applicants/${id}`,
-	getApplication: (id) => `${apiUrl}/applications/${id}`,
-	getReferees: (id) => `${apiUrl}/referees/${id}`,
-	getDependants: (id) => `${apiUrl}/dependants/${id}`,
-	getDocuments: (id) => `${apiUrl}/documents/${id}`,
-	getEmploymentHistory: (id) => `${apiUrl}/employments/${id}`,
-	getEducationTraining: (id) => `${apiUrl}/educations/${id}`,
-	getProfessionalMemberships: (id) => `${apiUrl}/memberships/${id}`,
-	getMyApplications: (id) => `${apiUrl}/myapplication/${id}`,
-	
-
-	// === JOB/APPLICATION RELATED ===
-	selectJob: `${apiUrl}/positions`,
-	getActivepositions: `${apiUrl}/positions`,
-	postApplication: `${apiUrl}/applications`,
-	postApplicationSection: `${apiUrl}/application_section`,
-	retrieveApplication: `${apiUrl}/retrieve_application`,
-	validateCode: `${apiUrl}/validate_code`,
-	getScreeningQuestions: (positionId) => `${apiUrl}/positions/${positionId}/questions`,
-	submitScreeningAnswers: (applicationId) => `${apiUrl}/screening/${applicationId}/answers`,
-};
 
 
 	let dataCache = {};
@@ -1044,46 +781,54 @@ const API = {
 	/* ----- Sidebar Navigation ----- */
 function showStep(step) {
 		currentStep = step;
-		sidebarNav.querySelectorAll('a.nav-link').forEach(a => {
-		const stepAttr = a.getAttribute('data-step');
-		a.classList.toggle('active', stepAttr === step);
-		if (step === 'selectJob' && stepAttr !== 'selectJob') {
-			a.classList.add('disabled');
-		} else {
-			a.classList.remove('disabled');
+		if (sidebarNav) {
+			sidebarNav.querySelectorAll('a.nav-link').forEach(a => {
+			const stepAttr = a.getAttribute('data-step');
+			a.classList.toggle('active', stepAttr === step);
+			if (step === 'selectJob' && stepAttr !== 'selectJob') {
+				a.classList.add('disabled');
+			} else {
+				a.classList.remove('disabled');
+			}
+			});
 		}
-		});
-		mainPanel.querySelectorAll('section[data-step-content]').forEach(sec => {
-		sec.classList.toggle('d-none', sec.getAttribute('data-step-content') !== step);
-		});
+		if (mainPanel) {
+			mainPanel.querySelectorAll('section[data-step-content]').forEach(sec => {
+			sec.classList.toggle('d-none', sec.getAttribute('data-step-content') !== step);
+			});
+		}
 
 	// Show sidebar for selectJob and previewApplication to allow navigation, hide for other steps on desktop
 	// On phone (width <= 767px), always show sidebar
 	const sidebar = document.querySelector('aside.sidebar');
-	if (window.innerWidth <= 767) {
-		sidebar.classList.remove('d-none');
-	} else {
-		if (step === 'selectJob' || step === 'previewApplication') {
+	if (sidebar) {
+		if (window.innerWidth <= 767) {
 			sidebar.classList.remove('d-none');
 		} else {
-			sidebar.classList.add('d-none');
+			if (step === 'selectJob' || step === 'previewApplication') {
+				sidebar.classList.remove('d-none');
+			} else {
+				sidebar.classList.add('d-none');
+			}
 		}
 	}
 
 		loadStepData(step);
 	}
 
-	sidebarNav.addEventListener('click', e => {
-		const a = e.target.closest('a.nav-link');
-		if (!a) return;
-		e.preventDefault();
-		const step = a.getAttribute('data-step');
-		if (isBrowseMode && step !== 'selectJob') {
-		showToast('You can only browse jobs in this mode. Please click View to Continue', 'warning');
-		return;
-		}
-		showStep(step);
-	});
+	if (sidebarNav) {
+		sidebarNav.addEventListener('click', e => {
+			const a = e.target.closest('a.nav-link');
+			if (!a) return;
+			e.preventDefault();
+			const step = a.getAttribute('data-step');
+			if (isBrowseMode && step !== 'selectJob') {
+			showToast('You can only browse jobs in this mode. Please click View to Continue', 'warning');
+			return;
+			}
+			showStep(step);
+		});
+	}
 
 function renderTableRows(items, tbodyEl, columns, editCb, deleteCb, customActionsCb) {
     tbodyEl.innerHTML = '';
@@ -1449,7 +1194,7 @@ async function fetchItems(apiUrl, key) {
 				openEducationModal,
 				async id => {
 					if (confirm('Delete this education record?')) {
-						const success = await deleteItem(API.educationTraining, id, 'educationTraining');
+						const success = await deleteItem(API.getEducationTraining(currentUser.id), id, 'educationTraining');
 						if (success) loadEducation();
 						showToast('Education record deleted.', 'success');
 					}
@@ -1576,7 +1321,7 @@ function openMembershipModal(editItem = null) {
 		{ key: 'institute' }
 		], openMembershipModal, async id => {
 		if (confirm('Delete this membership record?')) {
-			const success = await deleteItem(API.professionalMembership, id, 'professionalMembership');
+			const success = await deleteItem(API.getProfessionalMemberships(currentUser.id), id, 'professionalMembership');
 			if (success) loadMembership();
 		}
 		});
@@ -1689,10 +1434,10 @@ function openEmploymentModal(editItem = null) {
 		{ key: 'employer' },
 		{ key: 'position' },
 		{ key: 'duties' },
-		{ key: 'is_current', formatter: val => val ? 'Current' : 'Past' }	
+		{ key: 'is_current', formatter: val => val ? 'Current' : 'Past' }
 		], openEmploymentModal, async id => {
 		if (confirm('Delete this employment record?')) {
-			const success = await deleteItem(API.employmentHistory, id, 'employmentHistory');
+			const success = await deleteItem(API.getEmploymentHistory(currentUser.id), id, 'employmentHistory');
 			if (success) loadEmployment();
 		}
 		});
@@ -1796,7 +1541,7 @@ function openRefereeModal(editItem = null) {
 		{ key: 'position' }
 		], openRefereeModal, async id => {
 		if (confirm('Delete this employment record?')) {
-			const success = await deleteItem(API.referee, id, 'referee');
+			const success = await deleteItem(API.getReferees(currentUser.id), id, 'referee');
 			if (success) loadReferee();
 		}
 		});
@@ -1899,7 +1644,7 @@ async function openDocumentModal(editItem = null) {
 		{ key: 'title' },
 		], openDocumentModal, async id => {
 		if (confirm('Delete this document record?')) {
-			const success = await deleteItem(API.documents, id, 'documents');
+			const success = await deleteItem(API.getDocuments(currentUser.id), id, 'documents');
 			if (success) loadDocuments();
 		}
 		}, item => {
@@ -2004,7 +1749,7 @@ async function openDocumentModal(editItem = null) {
 		{ key: 'birth_date' }
 		], openDependantModal, async id => {
 		if (confirm('Delete this dependants record?')) {
-			const success = await deleteItem(API.dependants, id, 'dependants');
+			const success = await deleteItem(API.getDependants(currentUser.id), id, 'dependants');
 			if (success) loadDependants();
 		}
 		});
@@ -2697,7 +2442,7 @@ async function openDocumentModal(editItem = null) {
 		
 		switch (currentStep) {
 			case 'educationTraining': {
-				stepApiUrl = API.educationTraining;
+				stepApiUrl = API.getEducationTraining(currentUser.id);
 				key = 'educationTraining';
 				const data = {};
 				data.applicant_id = crudForm.querySelector('input[name="applicant_id"]').value;
@@ -2723,7 +2468,7 @@ async function openDocumentModal(editItem = null) {
 			}
 			
 			case 'documents': {
-				stepApiUrl = API.documents;
+				stepApiUrl = API.getDocuments(currentUser.id);
 				key = 'documents';
 				
 				// For documents, use FormData to handle file uploads
@@ -2794,10 +2539,10 @@ async function openDocumentModal(editItem = null) {
 			case 'dependants': {
 				stepApiUrl = (() => {
 					switch(currentStep) {
-						case 'professionalMembership': return API.professionalMembership;
-						case 'employmentHistory': return API.employmentHistory;
-						case 'referee': return API.referee;
-						case 'dependants': return API.dependants;
+						case 'professionalMembership': return API.getProfessionalMemberships(currentUser.id);
+						case 'employmentHistory': return API.getEmploymentHistory(currentUser.id);
+						case 'referee': return API.getReferees(currentUser.id);
+						case 'dependants': return API.getDependants(currentUser.id);
 					}
 				})();
 				key = currentStep;
@@ -3064,6 +2809,14 @@ async function openDocumentModal(editItem = null) {
 				showLoginForm();
 			}
 		}
+
+		// Attach button event listeners after DOM is loaded
+		document.getElementById('btnAddEducation')?.addEventListener('click', () => openEducationModal());
+		document.getElementById('btnAddMembership')?.addEventListener('click', () => openMembershipModal());
+		document.getElementById('btnAddEmployment')?.addEventListener('click', () => openEmploymentModal());
+		document.getElementById('btnAddDocument')?.addEventListener('click', () => openDocumentModal());
+		document.getElementById('btnAddReferee')?.addEventListener('click', () => openRefereeModal());
+		document.getElementById('btnAddDependant')?.addEventListener('click', () => openDependantModal());
 	}
 	document.addEventListener('DOMContentLoaded', init);
 
@@ -3284,221 +3037,5 @@ async function openDocumentModal(editItem = null) {
 			}
 		}
 	};
+}
 
-})();
-
-/* ========== Welcome Page Jobs - Outside IIFE ========== */
-window.WelcomePageJobs = {
-	jobsCache: [],
-	apiUrl: 'http://192.168.32.215:8041/api/v1',
-	
-	// Toast notification function
-	showToast: function(message, type = 'info') {
-		const toastContainer = document.getElementById('toastContainer');
-		if (!toastContainer) return;
-		
-		const toastId = 'toast-' + Date.now();
-		const toastHTML = `
-			<div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-				<div class="toast-header ${type}">
-					<strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
-					<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-				</div>
-				<div class="toast-body">${message}</div>
-			</div>
-		`;
-		toastContainer.insertAdjacentHTML('beforeend', toastHTML);
-		const toastEl = document.getElementById(toastId);
-		const bsToast = new bootstrap.Toast(toastEl, { autohide: true, delay: 4000 });
-		bsToast.show();
-		toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
-	},
-	
-	// Fetch jobs from API
-	loadJobs: async function() {
-		const jobsListContainer = document.getElementById('jobsList');
-		const loadingSpinner = document.getElementById('jobsLoading');
-		
-		if (!jobsListContainer) return;
-
-		try {
-			const response = await axios.get(`${this.apiUrl}/positions`);
-			
-			// Handle response - check if data exists
-			let jobs = [];
-			if (response.data && Array.isArray(response.data)) {
-				jobs = response.data;
-			} else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-				jobs = response.data.data;
-			}
-
-			// Debug: Log the first job to see its structure
-			if (jobs.length > 0) {
-				console.log('Sample job data:', jobs[0]);
-				console.log('Available fields:', Object.keys(jobs[0]));
-			}
-
-			// Cache jobs for modal use
-			this.jobsCache = jobs;
-
-			// Hide loading spinner
-			if (loadingSpinner) loadingSpinner.style.display = 'none';
-
-			if (jobs.length === 0) {
-				jobsListContainer.innerHTML = '<div class="col-12 text-center"><p class="text-muted">No job openings available at the moment.</p></div>';
-				return;
-			}
-
-			// Clear container and render job cards
-			jobsListContainer.innerHTML = '';
-			jobs.forEach(job => {
-				// Get job title with multiple fallbacks
-				const jobTitle = job.title || job.position_title || job.name || job.position_name || job.job_title || 'Untitled Position';
-				
-				const jobCard = `
-					<div class="col-md-6 col-lg-4 mb-4">
-						<div class="card h-100 shadow-sm border-0">
-							<div class="card-body d-flex flex-column">
-								<h5 class="card-title text-primary mb-auto">${jobTitle}</h5>
-								<button class="btn btn-primary w-100 mt-3" data-job-id="${job.id}" data-bs-toggle="modal" data-bs-target="#jobDetailsModal">
-									Apply
-								</button>
-							</div>
-						</div>
-					</div>
-				`;
-				jobsListContainer.insertAdjacentHTML('beforeend', jobCard);
-			});
-
-			// Add click event listeners to all apply buttons
-			this.attachApplyButtonListeners();
-
-		} catch (error) {
-			console.error('Error loading jobs:', error);
-			if (loadingSpinner) loadingSpinner.style.display = 'none';
-			jobsListContainer.innerHTML = '<div class="col-12 text-center"><p class="text-danger">Failed to load job openings. Please try again later.</p></div>';
-			this.showToast('Failed to load job openings from server.', 'error');
-		}
-	},
-	
-	// Attach event listeners to apply buttons
-	attachApplyButtonListeners: function() {
-		document.querySelectorAll('[data-job-id]').forEach(button => {
-			button.addEventListener('click', (e) => {
-				const jobId = button.getAttribute('data-job-id');
-				const job = this.jobsCache.find(j => j.id == jobId);
-				
-				if (job) {
-					this.displayJobDetails(job);
-				}
-			});
-		});
-	},
-	
-	// Display job details in modal
-	displayJobDetails: function(job) {
-		// Update modal title with multiple fallbacks
-		const jobTitle = job.title || job.position_title || job.name || job.position_name || job.job_title || 'Job Details';
-		document.getElementById('jobDetailsModalLabel').textContent = jobTitle;
-		
-		// Parse responsibilities and qualifications if they are JSON strings
-		let responsibilities = [];
-		let qualifications = [];
-		
-		try {
-			if (typeof job.responsibilities === 'string') {
-				responsibilities = JSON.parse(job.responsibilities);
-			} else if (Array.isArray(job.responsibilities)) {
-				responsibilities = job.responsibilities;
-			}
-		} catch (e) {
-			responsibilities = job.responsibilities ? [job.responsibilities] : [];
-		}
-
-		try {
-			if (typeof job.qualifications === 'string') {
-				qualifications = JSON.parse(job.qualifications);
-			} else if (Array.isArray(job.qualifications)) {
-				qualifications = job.qualifications;
-			}
-		} catch (e) {
-			qualifications = job.qualifications ? [job.qualifications] : [];
-		}
-
-		// Format date
-		const formatDate = (dateStr) => {
-			if (!dateStr) return 'Not specified';
-			const date = new Date(dateStr);
-			return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-		};
-
-		// Build modal body content
-		let content = `
-			<div class="mb-4">
-				<div class="row g-3">
-					<div class="col-md-4">
-						<h6 class="text-primary mb-2"><i class="bi bi-geo-alt-fill me-1"></i> Location</h6>
-						<p class="mb-0">${job.location || job.work_location || 'Not specified'}</p>
-					</div>
-					<div class="col-md-4">
-						<h6 class="text-primary mb-2"><i class="bi bi-clock-fill me-1"></i> Employment Type</h6>
-						<p class="mb-0">${job.employment_type || job.type || 'Full Time'}</p>
-					</div>
-					<div class="col-md-4">
-						<h6 class="text-primary mb-2"><i class="bi bi-calendar-event me-1"></i> Posted Date</h6>
-						<p class="mb-0">${formatDate(job.created_at || job.posted_date)}</p>
-					</div>
-				</div>
-				${job.deadline || job.application_deadline ? `
-				<div class="alert alert-info mt-3">
-					<i class="bi bi-info-circle me-2"></i>
-					<strong>Application Deadline:</strong> ${formatDate(job.deadline || job.application_deadline)}
-				</div>
-				` : ''}
-			</div>
-
-			<hr>
-
-			${job.description ? `
-			<div class="mb-4">
-				<h6 class="text-primary fw-bold mb-3">
-					<i class="bi bi-file-text me-2"></i>Job Description
-				</h6>
-				<p>${job.description}</p>
-			</div>
-			` : ''}
-
-			${responsibilities.length > 0 ? `
-			<div class="mb-4">
-				<h6 class="text-primary fw-bold mb-3">
-					<i class="bi bi-list-check me-2"></i>Key Responsibilities
-				</h6>
-				<ul class="list-group list-group-flush">
-					${responsibilities.map(resp => `<li class="list-group-item">${resp}</li>`).join('')}
-				</ul>
-			</div>
-			` : ''}
-
-			${qualifications.length > 0 ? `
-			<div class="mb-4">
-				<h6 class="text-primary fw-bold mb-3">
-					<i class="bi bi-mortarboard me-2"></i>Required Qualifications
-				</h6>
-				<ul class="list-group list-group-flush">
-					${qualifications.map(qual => `<li class="list-group-item">${qual}</li>`).join('')}
-				</ul>
-			</div>
-			` : ''}
-		`;
-		
-		document.getElementById('jobDetailsModalBody').innerHTML = content;
-
-		// Store job ID in apply button for later use
-		const applyBtn = document.getElementById('btnApplyFromModal');
-		if (applyBtn) {
-			applyBtn.setAttribute('data-job-id', job.id);
-		}
-	}
-};
-	
-	
