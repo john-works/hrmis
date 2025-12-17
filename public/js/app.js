@@ -1,4 +1,3 @@
-/* ========== Configuration ========== */
 // Set your API base URL here - change this to point to your backend
 function getApiUrl() {
     const origin = window.location.origin;
@@ -270,19 +269,19 @@ function autoLogout() {
 
 function showHomePage() {
 		// Hide all other areas
-		applicationDashboard.style.display = 'none';
+		if (applicationDashboard) applicationDashboard.style.display = 'none';
 
 		// Show home page and navbar
 		const homePage = document.getElementById('homePage');
-		mainNavbar.style.display = 'flex';
+		if (mainNavbar) mainNavbar.style.display = 'flex';
 
 		// On mobile, prioritize auth area if not logged in
 		if (window.innerWidth <= 767 && !currentUser) {
 			if (homePage) homePage.style.display = 'none';
-			authArea.style.display = 'block';
+			if (authArea) authArea.style.display = 'block';
 		} else {
 			if (homePage) homePage.style.display = 'block';
-			authArea.style.display = currentUser ? 'none' : 'block';
+			if (authArea) authArea.style.display = currentUser ? 'none' : 'block';
 		}
 
 		// Show/hide navigation items based on login status
@@ -2672,7 +2671,7 @@ async function openDocumentModal(editItem = null) {
 
 	/* -------- Global functions for navigation -------- */
 	window.showStep = showStep;
-	window.showHomePage = showHomePage;
+	window.selectJob = selectJob;
 	window.showSection = function(sectionName) {
 		const user = getSession();
 		if (!user) {
