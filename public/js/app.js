@@ -1052,14 +1052,13 @@ async function fetchItems(apiUrl, key) {
 	// Education and Training
 	const educationTableBody = document.querySelector('#educationTable tbody');
 	document.getElementById('btnAddEducation').addEventListener('click', () => openEducationModal());
-	function openEducationModal(editItem = null) {
-		alert('rtyrytrytryr')
+	window.openEducationModal = function(editItem = null) {
 		crudModalLabel.innerHTML = `
 			<i class="fas fa-graduation-cap me-2"></i>
 			${editItem ? 'Edit Education' : 'Add Education'}
 		`;
 
-		crudModalBody.innerHTML = `
+		crudForm.innerHTML = `
 			<input type="hidden" id="crudItemId" name="id" value="${editItem ? editItem.id : ''}">
 			<input type="hidden" name="applicant_id" value="${currentUser?.id || ''}">
 			<div class="row">

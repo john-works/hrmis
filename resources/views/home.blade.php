@@ -187,6 +187,126 @@
                                 </tr>
                             </thead>
                             <tbody id="documentsTableBody"></tbody>
+                        </table>
+                    </div>
+                    </section>
+
+                        <!-- Professional Membership Section -->
+                <section data-step-content="professionalMembership">
+                    <h4 class="mb-4"><i class="fas fa-users me-2"></i>Professional Membership</h4>
+                    <button class="btn btn-primary mb-3" id="btnAddMembership">
+                        <i class="fas fa-plus me-2"></i>Add Membership
+                    </button>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="membershipTable">
+                            <thead>
+                                <tr>
+                                    <th>Enrollment Year</th>
+                                    <th>Expiry Year</th>
+                                    <th>Membership Number</th>
+                                    <th>Type</th>
+                                    <th>Institute</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Employment History Section -->
+                <section data-step-content="employmentHistory">
+                    <h4 class="mb-4"><i class="fas fa-briefcase me-2"></i>Employment History</h4>
+                    <button class="btn btn-primary mb-3" id="btnAddEmployment">
+                        <i class="fas fa-plus me-2"></i>Add Employment
+                    </button>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="employmentTable">
+                            <thead>
+                                <tr>
+                                    <th>From Date</th>
+                                    <th>To Date</th>
+                                    <th>Employer</th>
+                                    <th>Position</th>
+                                    <th>Duties</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Documents Section -->
+                <section data-step-content="documents">
+                    <h4 class="mb-4"><i class="fas fa-paperclip me-2"></i>Documents</h4>
+                    <button class="btn btn-primary mb-3" id="btnAddDocument">
+                        <i class="fas fa-plus me-2"></i>Add Document
+                    </button>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="documentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Document Type</th>
+                                    <th>Title</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Referee Section -->
+                <section data-step-content="referee">
+                    <h4 class="mb-4"><i class="fas fa-eye me-2"></i>Referee</h4>
+                    <button class="btn btn-primary mb-3" id="btnAddReferee">
+                        <i class="fas fa-plus me-2"></i>Add Referee
+                    </button>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="refereeTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Relationship</th>
+                                    <th>Contact</th>
+                                    <th>Email</th>
+                                    <th>Address</th>
+                                    <th>Position</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Dependants Section -->
+                <section data-step-content="dependants">
+                    <h4 class="mb-4"><i class="fas fa-users me-2"></i>Dependants</h4>
+                    <button class="btn btn-primary mb-3" id="btnAddDependant">
+                        <i class="fas fa-plus me-2"></i>Add Dependant
+                    </button>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="dependantsTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Relationship</th>
+                                    <th>Date of Birth</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+
+
+
+
     <script>
 // Generic fetch and render for all main tables
 document.addEventListener('DOMContentLoaded', function() {
@@ -415,117 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </section>
 
-                <!-- Professional Membership Section -->
-                <section data-step-content="professionalMembership">
-                    <h4 class="mb-4"><i class="fas fa-users me-2"></i>Professional Membership</h4>
-                    <button class="btn btn-primary mb-3" id="btnAddMembership">
-                        <i class="fas fa-plus me-2"></i>Add Membership
-                    </button>
-                    <div class="table-responsive">
-                        <table class="table table-striped" id="membershipTable">
-                            <thead>
-                                <tr>
-                                    <th>Enrollment Year</th>
-                                    <th>Expiry Year</th>
-                                    <th>Membership Number</th>
-                                    <th>Type</th>
-                                    <th>Institute</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Employment History Section -->
-                <section data-step-content="employmentHistory">
-                    <h4 class="mb-4"><i class="fas fa-briefcase me-2"></i>Employment History</h4>
-                    <button class="btn btn-primary mb-3" id="btnAddEmployment">
-                        <i class="fas fa-plus me-2"></i>Add Employment
-                    </button>
-                    <div class="table-responsive">
-                        <table class="table table-striped" id="employmentTable">
-                            <thead>
-                                <tr>
-                                    <th>From Date</th>
-                                    <th>To Date</th>
-                                    <th>Employer</th>
-                                    <th>Position</th>
-                                    <th>Duties</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Documents Section -->
-                <section data-step-content="documents">
-                    <h4 class="mb-4"><i class="fas fa-paperclip me-2"></i>Documents</h4>
-                    <button class="btn btn-primary mb-3" id="btnAddDocument">
-                        <i class="fas fa-plus me-2"></i>Add Document
-                    </button>
-                    <div class="table-responsive">
-                        <table class="table table-striped" id="documentsTable">
-                            <thead>
-                                <tr>
-                                    <th>Document Type</th>
-                                    <th>Title</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Referee Section -->
-                <section data-step-content="referee">
-                    <h4 class="mb-4"><i class="fas fa-eye me-2"></i>Referee</h4>
-                    <button class="btn btn-primary mb-3" id="btnAddReferee">
-                        <i class="fas fa-plus me-2"></i>Add Referee
-                    </button>
-                    <div class="table-responsive">
-                        <table class="table table-striped" id="refereeTable">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Relationship</th>
-                                    <th>Contact</th>
-                                    <th>Email</th>
-                                    <th>Address</th>
-                                    <th>Position</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Dependants Section -->
-                <section data-step-content="dependants">
-                    <h4 class="mb-4"><i class="fas fa-users me-2"></i>Dependants</h4>
-                    <button class="btn btn-primary mb-3" id="btnAddDependant">
-                        <i class="fas fa-plus me-2"></i>Add Dependant
-                    </button>
-                    <div class="table-responsive">
-                        <table class="table table-striped" id="dependantsTable">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Relationship</th>
-                                    <th>Date of Birth</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
+            
 
                 <!-- Preview Application Section -->
                 <section data-step-content="previewApplication">
@@ -576,6 +586,409 @@ document.addEventListener('DOMContentLoaded', function() {
             <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
             <!-- app.js is loaded in the layout -->
             <script>
+            // Define modal functions if not already defined
+            if (typeof window.openEducationModal === 'undefined') {
+                window.openEducationModal = function(editItem = null) {
+                    const crudModalLabel = document.getElementById('crudModalLabel');
+                    const crudForm = document.getElementById('crudForm');
+                    const crudModal = new bootstrap.Modal(document.getElementById('crudModal'));
+                    const crudItemIdInput = document.getElementById('crudItemId');
+
+                    if (crudModalLabel) {
+                        crudModalLabel.innerHTML = `
+                            <i class="fas fa-graduation-cap me-2"></i>
+                            ${editItem ? 'Edit Education' : 'Add Education'}
+                        `;
+                    }
+
+                    if (crudForm) {
+                        crudForm.innerHTML = `
+                            <input type="hidden" id="crudItemId" name="id" value="${editItem ? editItem.id : ''}">
+                            <input type="hidden" name="applicant_id" value="${window.currentUser?.id || ''}">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">From Year</label>
+                                    <select class="form-control" id="start_year" name="start_year" required>
+                                        <option value="">Select Year</option>
+                                        ${(() => {
+                                            let options = '';
+                                            const currentYear = new Date().getFullYear();
+                                            for (let year = 1990; year <= currentYear; year++) {
+                                                options += `<option value="${year}" ${editItem?.start_year == year ? 'selected' : ''}>${year}</option>`;
+                                            }
+                                            return options;
+                                        })()}
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">To Year</label>
+                                    <select class="form-control" id="end_year" name="end_year">
+                                        <option value="">Select Year</option>
+                                        ${(() => {
+                                            let options = '';
+                                            const currentYear = new Date().getFullYear();
+                                            for (let year = 1990; year <= currentYear; year++) {
+                                                options += `<option value="${year}" ${editItem?.end_year == year ? 'selected' : ''}>${year}</option>`;
+                                            }
+                                            return options;
+                                        })()}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                            <div class="col-md-8 mb-3">
+                                    <label class="form-label fw-bold">Qualification</label>
+                                    <select class="form-control" id="qualification" name="qualification" required>
+                                        <option value="">Select Qualification</option>
+                                        <option value="PhD" ${editItem?.qualification === 'PhD' ? 'selected' : ''}>PhD</option>
+                                        <option value="Masters" ${editItem?.qualification === 'Masters' ? 'selected' : ''}>Masters</option>
+                                        <option value="Bachelors" ${editItem?.qualification === 'Bachelors' ? 'selected' : ''}>Bachelors</option>
+                                        <option value="Diploma" ${editItem?.qualification === 'Diploma' ? 'selected' : ''}>Diploma</option>
+                                        <option value="Certificate" ${editItem?.qualification === 'Certificate' ? 'selected' : ''}>Certificate</option>
+                                        <option value="Professional Certification" ${editItem?.qualification === 'Professional Certification' ? 'selected' : ''}>Professional Certification</option>
+
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4 mb-3" id="classOfDegreeContainer" style="display: none;">
+                                    <label class="form-label fw-bold">Class of Degree</label>
+                                    <select class="form-control" id="degree_class" name="degree_class">
+                                        <option value="">Select Class</option>
+                                        <option value="First Class" ${editItem?.degree_class === 'First Class' ? 'selected' : ''}>First Class</option>
+                                        <option value="Second Class Upper" ${editItem?.degree_class === 'Second Class Upper' ? 'selected' : ''}>Second Class Upper</option>
+                                        <option value="Second Class Lower" ${editItem?.degree_class === 'Second Class Lower' ? 'selected' : ''}>Second Class Lower</option>
+                                        <option value="Third Class" ${editItem?.degree_class === 'Third Class' ? 'selected' : ''}>Third Class</option>
+                                        <option value="Pass" ${editItem?.degree_class === 'Pass' ? 'selected' : ''}>Pass</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label fw-bold">Program/Course</label>
+                                    <input type="text" class="form-control" id="course" name="course"
+                                        required value="${editItem?.course || ''}">
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label fw-bold">Institution</label>
+                                    <input type="text" class="form-control" id="institution" name="institution"
+                                        required value="${editItem?.institution || ''}">
+                                </div>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" value="" id="ongoing" name="ongoing" ${editItem?.ongoing ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold" for="ongoing">
+                                    Ongoing
+                                </label>
+                            </div>
+                        `;
+                    }
+
+                    if (crudModal) {
+                        crudModal.show();
+                    }
+
+                    // Toggle Class of Degree visibility based on qualification
+                    function toggleClassOfDegree() {
+                        const qualification = document.getElementById('qualification');
+                        const container = document.getElementById('classOfDegreeContainer');
+                        if (qualification && container) {
+                            if (qualification.value === 'Bachelors') {
+                                container.style.display = 'block';
+                            } else {
+                                container.style.display = 'none';
+                            }
+                        }
+                    }
+
+                    // Add event listener to qualification select
+                    const qualificationSelect = document.getElementById('qualification');
+                    if (qualificationSelect) {
+                        qualificationSelect.addEventListener('change', toggleClassOfDegree);
+                    }
+
+                    // Initial toggle for edit mode
+                    toggleClassOfDegree();
+                };
+            }
+
+            if (typeof window.openMembershipModal === 'undefined') {
+                window.openMembershipModal = function(editItem = null) {
+                    const crudModalLabel = document.getElementById('crudModalLabel');
+                    const crudForm = document.getElementById('crudForm');
+                    const crudModalBody = document.getElementById('crudModalBody');
+                    const crudModal = crudModalBody ? new bootstrap.Modal(document.getElementById('crudModal')) : null;
+                    const crudItemIdInput = document.getElementById('crudItemId');
+
+                    if (crudModalLabel) {
+                        crudModalLabel.innerHTML = `
+                            <i class="fas fa-users me-2"></i>
+                            ${editItem ? 'Edit Membership' : 'Add Membership'}
+                        `;
+                    }
+
+                    if (crudModalBody) {
+                        crudModalBody.innerHTML = `
+                            <input type="hidden" id="crudItemId" name="id" value="${editItem ? editItem.id : ''}">
+                            <input type="hidden" name="applicant_id" value="${window.currentUser?.id || ''}">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Enrollment Year</label>
+                                    <select class="form-control" id="enrollment_year" name="enrollment_year" required>
+                                        <option value="">Select Year</option>
+                                        ${(() => {
+                                            let options = '';
+                                            const currentYear = new Date().getFullYear();
+                                            for (let year = 1990; year <= currentYear; year++) {
+                                                options += `<option value="${year}" ${editItem?.enrollment_year == year ? 'selected' : ''}>${year}</option>`;
+                                            }
+                                            return options;
+                                        })()}
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Year of Expiry</label>
+                                    <select class="form-control" id="expiry_year" name="expiry_year">
+                                        <option value="">Select Year</option>
+                                        ${(() => {
+                                            let options = '';
+                                            const currentYear = new Date().getFullYear();
+                                            for (let year = 1990; year <= currentYear; year++) {
+                                                options += `<option value="${year}" ${editItem?.expiry_year == year ? 'selected' : ''}>${year}</option>`;
+                                            }
+                                            return options;
+                                        })()}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Institute</label>
+                                <input type="text" class="form-control"
+                                    id="membershipInstitute"
+                                    name="institute"
+                                    placeholder="Eg, ISACA, Rotary, Lions Club"
+                                    required
+                                    value="${editItem?.institute || ''}">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Membership Type</label>
+                                <input type="text" class="form-control" id="membershipType" name="type" placeholder="Eg, Regular, Life, Honorary" required value="${editItem?.type || ''}">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Membership Number</label>
+                                <input type="text" class="form-control" id="membershipNumber" name="membership_number" placeholder="Eg, 123456" required value="${editItem?.membership_number || ''}">
+                            </div>
+                        `;
+                    }
+
+                    if (crudModal) {
+                        crudModal.show();
+                    }
+                };
+            }
+
+            if (typeof window.openEmploymentModal === 'undefined') {
+                window.openEmploymentModal = function(editItem = null) {
+                    const crudModalLabel = document.getElementById('crudModalLabel');
+                    const crudForm = document.getElementById('crudForm');
+                    const crudModalBody = document.getElementById('crudModalBody');
+                    const crudModal = crudModalBody ? new bootstrap.Modal(document.getElementById('crudModal')) : null;
+
+                    if (crudModalLabel) {
+                        crudModalLabel.innerHTML = `
+                            <i class="fas fa-briefcase me-2"></i>
+                            ${editItem ? 'Edit Employment' : 'Add Employment'}
+                        `;
+                    }
+
+                    if (crudModalBody) {
+                        crudModalBody.innerHTML = `
+                            <input type="hidden" id="crudItemId" name="id" value="${editItem ? editItem.id : ''}">
+                            <input type="hidden" name="applicant_id" value="${window.currentUser?.id || ''}">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">From Date</label>
+                                    <input type="date" class="form-control" id="start_date" name="start_date" required value="${editItem?.start_date || ''}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">To Date</label>
+                                    <input type="date" class="form-control" id="end_date" name="end_date" value="${editItem?.end_date || ''}">
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Employer</label>
+                                <input type="text" class="form-control" id="employer" name="employer" required value="${editItem?.employer || ''}">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Position</label>
+                                <input type="text" class="form-control" id="position" name="position" required value="${editItem?.position || ''}">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Duties</label>
+                                <textarea class="form-control" id="duties" name="duties" rows="3" required>${editItem?.duties || ''}</textarea>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" value="" id="is_current" name="is_current" ${editItem?.is_current ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold" for="is_current">
+                                    Current Employment
+                                </label>
+                            </div>
+                        `;
+                    }
+
+                    if (crudModal) {
+                        crudModal.show();
+                    }
+                };
+            }
+
+            if (typeof window.openDocumentModal === 'undefined') {
+                window.openDocumentModal = function(editItem = null) {
+                    const crudModalLabel = document.getElementById('crudModalLabel');
+                    const crudForm = document.getElementById('crudForm');
+                    const crudModalBody = document.getElementById('crudModalBody');
+                    const crudModal = crudModalBody ? new bootstrap.Modal(document.getElementById('crudModal')) : null;
+
+                    if (crudModalLabel) {
+                        crudModalLabel.innerHTML = `
+                            <i class="fas fa-paperclip me-2"></i>
+                            ${editItem ? 'Edit Document' : 'Add Document'}
+                        `;
+                    }
+
+                    if (crudModalBody) {
+                        crudModalBody.innerHTML = `
+                            <input type="hidden" id="crudItemId" name="id" value="${editItem ? editItem.id : ''}">
+                            <input type="hidden" name="applicant_id" value="${window.currentUser?.id || ''}">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Document Type</label>
+                                <select class="form-control" id="document_type" name="document_type" required>
+                                    <option value="">Select Document Type</option>
+                                    <option value="CV" ${editItem?.document_type === 'CV' ? 'selected' : ''}>CV</option>
+                                    <option value="Certificate" ${editItem?.document_type === 'Certificate' ? 'selected' : ''}>Certificate</option>
+                                    <option value="Diploma" ${editItem?.document_type === 'Diploma' ? 'selected' : ''}>Diploma</option>
+                                    <option value="Transcript" ${editItem?.document_type === 'Transcript' ? 'selected' : ''}>Transcript</option>
+                                    <option value="ID" ${editItem?.document_type === 'ID' ? 'selected' : ''}>ID</option>
+                                    <option value="Passport" ${editItem?.document_type === 'Passport' ? 'selected' : ''}>Passport</option>
+                                    <option value="Other" ${editItem?.document_type === 'Other' ? 'selected' : ''}>Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Title</label>
+                                <input type="text" class="form-control" id="title" name="title" required value="${editItem?.title || ''}">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">File</label>
+                                <input type="file" class="form-control" id="file" name="file" accept=".pdf,.doc,.docx,.jpg,.png" ${editItem ? '' : 'required'}>
+                            </div>
+                        `;
+                    }
+
+                    if (crudModal) {
+                        crudModal.show();
+                    }
+                };
+            }
+
+            if (typeof window.openRefereeModal === 'undefined') {
+                window.openRefereeModal = function(editItem = null) {
+                    const crudModalLabel = document.getElementById('crudModalLabel');
+                    const crudForm = document.getElementById('crudForm');
+                    const crudModalBody = document.getElementById('crudModalBody');
+                    const crudModal = crudModalBody ? new bootstrap.Modal(document.getElementById('crudModal')) : null;
+
+                    if (crudModalLabel) {
+                        crudModalLabel.innerHTML = `
+                            <i class="fas fa-eye me-2"></i>
+                            ${editItem ? 'Edit Referee' : 'Add Referee'}
+                        `;
+                    }
+
+                    if (crudModalBody) {
+                        crudModalBody.innerHTML = `
+                            <input type="hidden" id="crudItemId" name="id" value="${editItem ? editItem.id : ''}">
+                            <input type="hidden" name="applicant_id" value="${window.currentUser?.id || ''}">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Name</label>
+                                <input type="text" class="form-control" id="referee_name" name="name" required value="${editItem?.name || ''}">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Relationship</label>
+                                <input type="text" class="form-control" id="relationship" name="relationship" required value="${editItem?.relationship || ''}">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Contact</label>
+                                    <input type="text" class="form-control" id="contact" name="contact" required value="${editItem?.contact || ''}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" required value="${editItem?.email || ''}">
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Address</label>
+                                <textarea class="form-control" id="address" name="address" rows="2" required>${editItem?.address || ''}</textarea>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Position</label>
+                                <input type="text" class="form-control" id="referee_position" name="position" required value="${editItem?.position || ''}">
+                            </div>
+                        `;
+                    }
+
+                    if (crudModal) {
+                        crudModal.show();
+                    }
+                };
+            }
+
+            if (typeof window.openDependantModal === 'undefined') {
+                window.openDependantModal = function(editItem = null) {
+                    const crudModalLabel = document.getElementById('crudModalLabel');
+                    const crudForm = document.getElementById('crudForm');
+                    const crudModalBody = document.getElementById('crudModalBody');
+                    const crudModal = crudModalBody ? new bootstrap.Modal(document.getElementById('crudModal')) : null;
+
+                    if (crudModalLabel) {
+                        crudModalLabel.innerHTML = `
+                            <i class="fas fa-users me-2"></i>
+                            ${editItem ? 'Edit Dependant' : 'Add Dependant'}
+                        `;
+                    }
+
+                    if (crudModalBody) {
+                        crudModalBody.innerHTML = `
+                            <input type="hidden" id="crudItemId" name="id" value="${editItem ? editItem.id : ''}">
+                            <input type="hidden" name="applicant_id" value="${window.currentUser?.id || ''}">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Name</label>
+                                <input type="text" class="form-control" id="dependant_name" name="name" required value="${editItem?.name || ''}">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Relationship</label>
+                                <select class="form-control" id="dependant_relationship" name="relationship" required>
+                                    <option value="">Select Relationship</option>
+                                    <option value="Spouse" ${editItem?.relationship === 'Spouse' ? 'selected' : ''}>Spouse</option>
+                                    <option value="Child" ${editItem?.relationship === 'Child' ? 'selected' : ''}>Child</option>
+                                    <option value="Parent" ${editItem?.relationship === 'Parent' ? 'selected' : ''}>Parent</option>
+                                    <option value="Sibling" ${editItem?.relationship === 'Sibling' ? 'selected' : ''}>Sibling</option>
+                                    <option value="Other" ${editItem?.relationship === 'Other' ? 'selected' : ''}>Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Date of Birth</label>
+                                <input type="date" class="form-control" id="birth_date" name="birth_date" required value="${editItem?.birth_date || ''}">
+                            </div>
+                        `;
+                    }
+
+                    if (crudModal) {
+                        crudModal.show();
+                    }
+                };
+            }
+
             // Global loadSection function - defined immediately
             window.loadSection = function(section) {
                 // Hide all sections first
@@ -586,6 +999,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 const targetSection = document.querySelector(`[data-step-content="${section}"]`);
                 if (targetSection) {
                     targetSection.classList.remove('d-none');
+                }
+
+                // Add event listeners for buttons in the section
+                if (section === 'educationTraining') {
+                    const btnAddEducation = document.getElementById('btnAddEducation');
+                    if (btnAddEducation) {
+                        btnAddEducation.addEventListener('click', () => { if (typeof window.openEducationModal === 'function') window.openEducationModal(); });
+                    }
+                } else if (section === 'professionalMembership') {
+                    const btnAddMembership = document.getElementById('btnAddMembership');
+                    if (btnAddMembership) {
+                        btnAddMembership.addEventListener('click', () => { if (typeof window.openMembershipModal === 'function') window.openMembershipModal(); });
+                    }
+                } else if (section === 'employmentHistory') {
+                    const btnAddEmployment = document.getElementById('btnAddEmployment');
+                    if (btnAddEmployment) {
+                        btnAddEmployment.addEventListener('click', () => { if (typeof window.openEmploymentModal === 'function') window.openEmploymentModal(); });
+                    }
+                } else if (section === 'documents') {
+                    const btnAddDocument = document.getElementById('btnAddDocument');
+                    if (btnAddDocument) {
+                        btnAddDocument.addEventListener('click', () => { if (typeof window.openDocumentModal === 'function') window.openDocumentModal(); });
+                    }
+                } else if (section === 'referee') {
+                    const btnAddReferee = document.getElementById('btnAddReferee');
+                    if (btnAddReferee) {
+                        btnAddReferee.addEventListener('click', () => { if (typeof window.openRefereeModal === 'function') window.openRefereeModal(); });
+                    }
+                } else if (section === 'dependants') {
+                    const btnAddDependant = document.getElementById('btnAddDependant');
+                    if (btnAddDependant) {
+                        btnAddDependant.addEventListener('click', () => { if (typeof window.openDependantModal === 'function') window.openDependantModal(); });
+                    }
                 }
 
                 // Load data for the section if API is available
