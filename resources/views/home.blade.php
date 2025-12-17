@@ -1,18 +1,10 @@
- @extends('layouts.public')
+ @extends('layouts.app')
 
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-     
-
            <!-- Toast Container -->
     <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
-   
-
-
-
-
-
     <div id="homePage" class="container-fluid py-5" style="background-color: #f8fafc;">
     <h2 class="text-center mb-5 text-primary fw-bold">Current Job Openings</h2>
     <!-- Main Content -->
@@ -44,6 +36,43 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary" id="btnApplyFromModal">Apply Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CRUD Modal for Add/Edit Forms -->
+    <div class="modal fade" id="crudModal" tabindex="-1" aria-labelledby="crudModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="crudModalLabel">Modal Title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="crudModalBody">
+                    <form id="crudForm">
+                        <input type="hidden" id="crudItemId" name="id">
+                        <!-- Form content will be loaded here -->
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="crudSaveBtn" form="crudForm">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Login form will be loaded here -->
                 </div>
             </div>
         </div>
@@ -472,6 +501,7 @@
 
             // Load jobs into homepage alert
             if (typeof loadHomepageJobs === 'function') {
+                // console.log('Loading homepage jobs...');
                 loadHomepageJobs();
             }
         }
@@ -547,7 +577,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (loadingSpinner) loadingSpinner.style.display = 'none';
 
             if (jobs.length === 0) {
-                jobsListContainer.innerHTML = '<div class="col-12 text-center"><p class="text-muted">No job openings available at the moment.</p></div>';
+                jobsListContainer.innerHTML = '<div class="col-12 text-center"><p class="text-muted">No jobs available at the moment.</p></div>';
                 return;
             }
 

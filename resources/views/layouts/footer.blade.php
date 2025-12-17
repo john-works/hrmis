@@ -87,3 +87,11 @@
             </div>
         </div>
     </footer>
+        <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- App JS -->
+    <script type="text/javascript" src="{{ asset('js/app.js') }}" defer></script>
+    </body>
+</html>

@@ -266,7 +266,7 @@ function autoLogout() {
 		document.body.classList.add('auth-view');
 	}
 
-function showHomePage() {
+function showHomePageV2() {
 		// Hide all other areas
 		if (applicationDashboard) applicationDashboard.style.display = 'none';
 
@@ -299,6 +299,7 @@ function showHomePage() {
 		document.body.classList.remove('auth-view');
 
 		// Load jobs into homepage alert
+		console.log('Loading homepage jobs...');
 		loadHomepageJobs();
 	}
 
@@ -1052,14 +1053,14 @@ async function fetchItems(apiUrl, key) {
 	const educationTableBody = document.querySelector('#educationTable tbody');
 	document.getElementById('btnAddEducation').addEventListener('click', () => openEducationModal());
 	function openEducationModal(editItem = null) {
+		alert('rtyrytrytryr')
 		crudModalLabel.innerHTML = `
 			<i class="fas fa-graduation-cap me-2"></i>
 			${editItem ? 'Edit Education' : 'Add Education'}
 		`;
 
-		crudItemIdInput.value = editItem ? editItem.id : '';
-
 		crudModalBody.innerHTML = `
+			<input type="hidden" id="crudItemId" name="id" value="${editItem ? editItem.id : ''}">
 			<input type="hidden" name="applicant_id" value="${currentUser?.id || ''}">
 			<div class="row">
 				<div class="col-md-6 mb-3">
@@ -1217,72 +1218,53 @@ function openMembershipModal(editItem = null) {
         ${editItem ? 'Edit Membership' : 'Add Membership'}
     `;
 
-    // Set ID (used for update)
-    crudItemIdInput.value = editItem ? editItem.id : '';
-
-    // Modal form body
-    crudModalBody.innerHTML = `
-        <input type="hidden" name="applicant_id" value="${currentUser?.id || ''}">
-
-
+	// Modal form body
+	crudForm.innerHTML = `
+		<input type="hidden" id="crudItemId" name="id" value="${editItem ? editItem.id : ''}">
+		<input type="hidden" name="applicant_id" value="${currentUser?.id || ''}">
 		<div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label fw-bold">Enrollment Year</label>
-                <select class="form-control" id="end_year" name="enrollment_year" required>
-						<option value="">Select Year</option>
-						${Array.from({length: new Date().getFullYear() - 1990 + 1}, (_, i) => 1990 + i)
-							.map(year => `<option value="${year}" ${editItem?.enrollment_year == year ? 'selected' : ''}>${year}</option>`).join('')}
+			<div class="col-md-6 mb-3">
+				<label class="form-label fw-bold">Enrollment Year</label>
+				<select class="form-control" id="end_year" name="enrollment_year" required>
+					<option value="">Select Year</option>
+					${Array.from({length: new Date().getFullYear() - 1990 + 1}, (_, i) => 1990 + i)
+						.map(year => `<option value="${year}" ${editItem?.enrollment_year == year ? 'selected' : ''}>${year}</option>`).join('')}
 				</select>
-            </div>
-
-		
+			</div>
 			<div class="col-md-6 mb-3">
 				<label class="form-label fw-bold">Year of Expiry</label>
 				<select class="form-control" id="expiry_year" name="expiry_year">
-						<option value="">Select Year</option>
-						${Array.from({length: new Date().getFullYear() - 1990 + 1}, (_, i) => 1990 + i)
-							.map(year => `<option value="${year}" ${editItem?.expiry_year == year ? 'selected' : ''}>${year}</option>`).join('')}
-					</select>
+					<option value="">Select Year</option>
+					${Array.from({length: new Date().getFullYear() - 1990 + 1}, (_, i) => 1990 + i)
+						.map(year => `<option value="${year}" ${editItem?.expiry_year == year ? 'selected' : ''}>${year}</option>`).join('')}
+				</select>
 			</div>
 		</div>
-        
-
-        
-            <div class="col-md-12 mb-3">
-                <label class="form-label fw-bold">Institute</label>
-                <input type="text" class="form-control" 
-                    id="membershipInstitute" 
-                    name="institute" 
-                    placeholder="Eg, ISACA, Rotary, Lions Club" 
-                    required
-                    value="${editItem?.institute || ''}">
-            </div>
-
-            <div class="col-md-12 mb-3">
-                <label class="form-label fw-bold">Membership Type</label>
-                <input type="text" class="form-control"
-                    id="membershipType" 
-                    name="type" 
-                    placeholder="Eg, Member, Student, Chairperson"
-                    required
-                    value="${editItem?.type || ''}">
-       		</div>
-		
-
-
-		
-			<div class="col-md-12 mb-3">
-				<label class="form-label fw-bold">Membership Number</label>
-				<input type="text" class="form-control"
-					id="membershipNumber" 
-					name="membership_number"	
-					placeholder="Eg, 12345"
-					value="${editItem?.membership_number || ''}">
-			</div>
-	
-    `;
-
-    crudModal.show();
+		<div class="col-md-12 mb-3">
+			<label class="form-label fw-bold">Institute</label>
+			<input type="text" class="form-control" 
+				id="membershipInstitute" 
+				name="institute" 
+				placeholder="Eg, ISACA, Rotary, Lions Club" 
+				required
+				value="${editItem?.institute || ''}">
+		</div>
+		<div class="col-md-12 mb-3">
+			<label class="form-label fw-bold">Membership Type</label>
+			<input type="text" class="form-control" id="membershipType" name="type" placeholder="Eg, Regular, Life, Honorary" required value="${editItem?.type || ''}">
+		</div>
+		<div class="col-md-12 mb-3">
+			<label class="form-label fw-bold">Membership Number</label>
+			<input type="text" class="form-control" id="membershipNumber" name="membership_number" placeholder="Eg, 123456" required value="${editItem?.membership_number || ''}">
+		</div>
+	`;
+	// Show the modal (if needed)
+	if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal === 'function') {
+		const modalInstance = bootstrap.Modal.getOrCreateInstance(crudModalEl);
+		modalInstance.show();
+	} else if (crudModal && typeof crudModal.show === 'function') {
+		crudModal.show();
+	}
 }
 
 
@@ -1299,30 +1281,34 @@ function openMembershipModal(editItem = null) {
 		if (!items || items.length === 0) {
 			if (currentUser && currentUser.memberships && Array.isArray(currentUser.memberships)) {
 				items = currentUser.memberships.map((mem, index) => ({
-					id: `user-mem-${index}`,
+					id: `user-mem-${index}`, 
 					enrollment_year: mem.enrollment_year || '',
 					expiry_year: mem.expiry_year || '',
 					membership_number: mem.membership_number || '',
 					type: mem.type || '',
 					institute: mem.institute || ''
-					
-					
 				}));
 				dataCache['professionalMembership'] = items;
 			}
 		}
-		renderTableRows(items, membershipTableBody, [
-		{ key: 'enrollment_year' },
-		{ key: 'expiry_year' },
-		{ key: 'membership_number' },
-		{ key: 'type' },
-		{ key: 'institute' }
-		], openMembershipModal, async id => {
-		if (confirm('Delete this membership record?')) {
-			const success = await deleteItem(API.getProfessionalMemberships(currentUser.id), id, 'professionalMembership');
-			if (success) loadMembership();
-		}
-		});
+		renderTableRows(
+			items,
+			membershipTableBody,
+			[
+				{ key: 'enrollment_year' },
+				{ key: 'expiry_year' },
+				{ key: 'membership_number' },
+				{ key: 'type' },
+				{ key: 'institute' }
+			],
+			openMembershipModal,
+			async id => {
+				if (confirm('Delete this membership record?')) {
+					const success = await deleteItem(API.getProfessionalMemberships(currentUser.id), id, 'professionalMembership');
+					if (success) loadMembership();
+				}
+			}
+		);
 	}
 
 
@@ -1334,73 +1320,59 @@ document.getElementById('btnAddEmployment').addEventListener('click', () => open
 
 function openEmploymentModal(editItem = null) {
 
-    crudModalLabel.innerHTML = `
-        <i class="fas fa-briefcase me-2"></i>
-        ${editItem ? 'Edit Employment' : 'Add Employment'}
-    `;
+	crudModalLabel.innerHTML = `
+		<i class="fas fa-briefcase me-2"></i>
+		${editItem ? 'Edit Employment' : 'Add Employment'}
+	`;
 
-    // Set ID (used for update)
-    crudItemIdInput.value = editItem ? editItem.id : '';
+	// Set ID (used for update)
+	crudItemIdInput.value = editItem ? editItem.id : '';
 
-    // Modal form body
-    crudModalBody.innerHTML = `
-        <input type="hidden" name="applicant_id" value="${currentUser?.id || ''}">
-
-
+	// Modal form body
+	crudModalBody.innerHTML = `
+		<input type="hidden" name="applicant_id" value="${currentUser?.id || ''}">
 		<div class="form-check mb-3">
-				<input class="form-check-input" type="checkbox" value="" id="is_current" name="is_current" ${editItem?.is_current ? 'checked' : ''}>
-				<label class="form-check-label fw-bold" for="is_current">
-					Currently Employed Here
-				</label>
+			<input class="form-check-input" type="checkbox" value="" id="is_current" name="is_current" ${editItem?.is_current ? 'checked' : ''}>
+			<label class="form-check-label fw-bold" for="is_current">
+				Currently Employed Here
+			</label>
 		</div>
-		
-		
 		<div class="row">
-				<div class="col-md-6 mb-3">
-					<label class="form-label fw-bold">From Year</label>
-					<input type="date" class="form-control calander" name="start_date" value="${editItem?.start_date || ''}"/>
-				</div>
-				<div class="col-md-6 mb-3" id="end_date_container" ${editItem?.is_current ? 'style="display: none;"' : ''}>
-					<label class="form-label fw-bold">To Year</label>
-					<input type="date" class="form-control calander"  name="end_date" value="${editItem?.end_date || ''}" ${editItem?.is_current ? 'disabled' : ''}/>
-
-				</div>
+			<div class="col-md-6 mb-3">
+				<label class="form-label fw-bold">From Year</label>
+				<input type="date" class="form-control calander" name="start_date" value="${editItem?.start_date || ''}"/>
+			</div>
+			<div class="col-md-6 mb-3" id="end_date_container" ${editItem?.is_current ? 'style=\"display: none;\"' : ''}>
+				<label class="form-label fw-bold">To Year</label>
+				<input type="date" class="form-control calander"  name="end_date" value="${editItem?.end_date || ''}" ${editItem?.is_current ? 'disabled' : ''}/>
+			</div>
 		</div>
-
 		<div class="row">
 			<div class="col-md-12 mb-3">
 				<label for="employer" class="form-label fw-bold">Employer</label>
 				<input type="text" class="form-control" id="from_date" name="employer" placeholder="e.g. Tech Solutions Inc." required value="${editItem?.employer || ''}">
-			
 			</div>
-		
 			<div class="col-md-12 mb-3">
 				<label for="position" class="form-label fw-bold">Position Held</label>
-				<input type="text" class="form-control" id="position" name="position" placeholder="e.g. Software Developer" required value="${editItem?.position || ''}">			
+				<input type="text" class="form-control" id="position" name="position" placeholder="e.g. Software Developer" required value="${editItem?.position || ''}">
 			</div>
 		</div>
-
 		<div class="col-md-12 mb-3">
-				<label for="position" class="form-label fw-bold">Duties</label>
-				<textarea class="form-control" id="duties" name="duties"  rows="7" placeholder="e.g.  Developed web applications " required>${editItem?.duties || ''}</textarea>			
+			<label for="position" class="form-label fw-bold">Duties</label>
+			<textarea class="form-control" id="duties" name="duties"  rows="7" placeholder="e.g.  Developed web applications " required>${editItem?.duties || ''}</textarea>
 		</div>
+	`;
 
-		
+	crudModal.show();
 
-		
-
-    `;
-
-    crudModal.show();
-
-    // Add event listener to toggle end_date input disabled state
-    const checkbox = document.getElementById('is_current');
-    const endDateInput = document.querySelector('input[name="end_date"]');
-    if (checkbox && endDateInput) {
-        checkbox.addEventListener('change', () => {
-            endDateInput.disabled = checkbox.checked;
-        });
-    }
+	// Add event listener to toggle end_date input disabled state
+	const checkbox = document.getElementById('is_current');
+	const endDateInput = document.querySelector('input[name="end_date"]');
+	if (checkbox && endDateInput) {
+		checkbox.addEventListener('change', () => {
+			endDateInput.disabled = checkbox.checked;
+		});
+	}
 }
 	async function loadEmployment() {
 		if (!currentUser || !currentUser.id) {
@@ -1426,123 +1398,25 @@ function openEmploymentModal(editItem = null) {
 				dataCache['employmentHistory'] = items;
 			}
 		}
-		renderTableRows(items, employmentTableBody, [
-		{ key: 'start_date' },
-		{ key: 'end_date' },
-		{ key: 'employer' },
-		{ key: 'position' },
-		{ key: 'duties' },
-		{ key: 'is_current', formatter: val => val ? 'Current' : 'Past' }
-		], openEmploymentModal, async id => {
-		if (confirm('Delete this employment record?')) {
-			const success = await deleteItem(API.getEmploymentHistory(currentUser.id), id, 'employmentHistory');
-			if (success) loadEmployment();
-		}
-		});
-	}
-
-
-	
-// Referee 
-const refereeTableBody = document.querySelector('#refereeTable tbody');
-
-document.getElementById('btnAddReferee').addEventListener('click', () => openRefereeModal());
-
-function openRefereeModal(editItem = null) {
-
-    crudModalLabel.innerHTML = `
-        <i class="fas fa-briefcase me-2"></i>
-        ${editItem ? 'Edit Referee' : 'Add Referee'}
-    `;
-
-    // Set ID (used for update)
-    crudItemIdInput.value = editItem ? editItem.id : '';
-
-    // Modal form body
-    crudModalBody.innerHTML = `
-        <input type="hidden" name="applicant_id" value="${currentUser?.id || ''}">
-
-		<div class="row">
-		
-			<div class="col-md-6 mb-3">
-			<label for="name" class="form-label fw-bold">Full Name</label>
-			<input type="text" class="form-control" id="name" name="name"  required value="${editItem?.name || ''}">
-			</div>
-
-
-			<div class="col-md-6 mb-3">
-			<label for="address" class="form-label fw-bold">Address</label>
-			<input type="text" class="form-control" id="address" name="address"  required value="${editItem?.address || ''}"/>
-				
-			</div>
-		</div>
-
-		<div class="row">
-		
-			<div class="col-md-6 mb-3">
-				<label for="position" class="form-label fw-bold">Position</label>
-				<input type="text" class="form-control" id="position" name="position"  required value="${editItem?.position || ''}">
-			</div>
-			<div class="col-md-6 mb-3">
-				<label for="email" class="form-label fw-bold">Email</label>
-				<input type="email" class="form-control" id="email" name="email"  required value="${editItem?.email || ''}"/>
-				
-			</div>
-		</div>
-
-		<div class="row">
-		
-			<div class="col-md-6 mb-3">
-			<label for="tel" class="form-label fw-bold">Contact</label>
-			<input type="text" class="form-control" id="tel" name="tel"  required value="${editItem?.tel || ''}">
-			</div>
-
-			<div class="col-md-6 mb-3">
-			<label for="relationship" class="form-label fw-bold">Relationship</label>
-			<input type="text" class="form-control" id="relationship" name="relationship"  required value="${editItem?.relationship || ''}"/>
-
-		</div>
-    `;
-
-    crudModal.show();
-}
-	async function loadReferee() {
-		if (!currentUser || !currentUser.id) {
-			showToast('User not authenticated. Please log in.', 'warning');
-			return;
-		}
-		let items = [];
-		// Use GET route for applicant
-		items = await fetchItems(API.getReferees(currentUser.id), 'referee');
-		// fallback if no API data
-		if (!items || items.length === 0) {
-			if (currentUser && currentUser.referees && Array.isArray(currentUser.referees)) {
-				items = currentUser.referees.map((mem, index) => ({
-					id: `user-mem-${index}`,
-					name: mem.name || '',
-					relationship: mem.relationship || '',
-					tel: mem.tel || '',
-					email: mem.email || '',
-					address: mem.address || '',
-					position: mem.position || ''
-					
-				}));
-				dataCache['referee'] = items;
+		renderTableRows(
+			items,
+			employmentTableBody,
+			[
+				{ key: 'start_date' },
+				{ key: 'end_date' },
+				{ key: 'employer' },
+				{ key: 'position' },
+				{ key: 'duties' },
+				{ key: 'is_current', formatter: val => val ? 'Current' : 'Past' }
+			],
+			openEmploymentModal,
+			async id => {
+				if (confirm('Delete this employment record?')) {
+					const success = await deleteItem(API.getEmploymentHistory(currentUser.id), id, 'employmentHistory');
+					if (success) loadEmployment();
+				}
 			}
-		}
-		renderTableRows(items, refereeTableBody, [
-		{ key: 'name' },
-		{ key: 'relationship' },
-		{ key: 'tel' },
-		{ key: 'email' },
-		{ key: 'address' },
-		{ key: 'position' }
-		], openRefereeModal, async id => {
-		if (confirm('Delete this employment record?')) {
-			const success = await deleteItem(API.getReferees(currentUser.id), id, 'referee');
-			if (success) loadReferee();
-		}
-		});
+		);
 	}
 
 
@@ -2705,6 +2579,7 @@ async function openDocumentModal(editItem = null) {
 
 	// Function to load jobs into homepage alert
 	async function loadHomepageJobs() {
+		console.log('Loading homepage jobs...');
 		try {
 			const response = await axios.get(API.selectJob);
 			const jobs = response.data.data || [];
@@ -3037,3 +2912,4 @@ async function openDocumentModal(editItem = null) {
 	};
 }
 
+// console.log('End of file loaded successfully.');	
